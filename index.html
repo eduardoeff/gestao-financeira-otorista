@@ -53,4 +53,498 @@
 
       const addRide = () => {
         if (!rideForm.value) return;
-        setRides(prev => [
+        setRides([...rides, { ...rideForm, id: Date.now(), value: parseFloat(rideForm.value) }]);
+        setRideForm({ date: today, app: 'Uber', value: '', distance: '', time: '' });
+        setShowRideModal(false);
+      };
+
+      const addExpense = () => {
+        if (!expenseForm.value) return;
+        setExpenses([...expenses, { ...expenseForm, id: Date.now(), value: parseFloat(expenseForm.value) }]);
+        setExpenseForm({ date: today, category: 'Combustível', description: '', value: '' });
+        setShowExpenseModal(false);
+      };
+
+      const addHouseExpense = () => {
+        if (!houseForm.value) return;
+        setHouseExpenses([...houseExpenses, { ...houseForm, id: Date.now(), value: parseFloat(houseForm.value) }]);
+        setHouseForm({ date: today, category: 'Alimentação', description: '', value: '' });
+        setShowHouseModal(false);
+      };
+
+      const deleteRide = (id) => setRides(rides.filter(r => r.id !== id));
+      const deleteExpense = (id) => setExpenses(expenses.filter(e => e.id !== id));
+      const deleteHouseExpense = (id) => setHouseExpenses(houseExpenses.filter(h => h.id !== id));
+
+      const totalRides = rides.reduce((sum, ride) => sum + ride.value, 0);
+      const totalExpenses = expenses.reduce((sum, exp) => sum + exp.value, 0);
+      const totalHouseExpenses = houseExpenses.reduce((sum, house) => sum + house.value, 0);
+      const workProfit = totalRides - totalExpenses;
+      const finalBalance = workProfit - totalHouseExpenses;
+
+      const mobileCardClass = "bg-white rounded-lg shadow p-4 mb-3";
+
+      return (
+        <div className="min-h-screen flex flex-col">
+          {/* Cabeçalho */}
+          <header className="bg-gradient-to-r from-blue-600 to-blue-800 text-white p-4 shadow">
+            <h1 className="text-2xl font-bold">💰 Gestão Financeira</h1>
+            <p className="text-sm text-blue-100">Motorista de App + Casa</p>
+          </header>
+
+          {/* Navegação inferior (mobile-friendly) */}
+          <nav className="fixed bottom-0 left-0 right-0 bg-white border-t shadow-inner flex justify-around py-2 text-xs sm:text-sm">
+            <button
+              onClick={() => setActiveTab('dashboard')}
+              className={`flex flex-col items-center ${activeTab === 'dashboard' ? 'text-blue-600 font-semibold' : 'text-gray-500'}`}
+            >
+              <span>📊</span>
+              <span>Dashboard</span>
+            </button>
+            <button
+              onClick={() => setActiveTab('corridas')}
+              className={`flex flex-col items-center ${activeTab === 'corridas' ? 'text-blue-600 font-semibold' : 'text-gray-500'}`}
+            >
+              <span>🚗</span>
+              <span>Corridas</span>
+            </button>
+            <button
+              onClick={() => setActiveTab('despesas-trabalho')}
+              className={`flex flex-col items-center ${activeTab === 'despesas-trabalho' ? 'text-blue-600 font-semibold' : 'text-gray-500'}`}
+            >
+              <span>⛽</span>
+              <span>Trabalho</span>
+            </button>
+            <button
+              onClick={() => setActiveTab('despesas-casa')}
+              className={`flex flex-col items-center ${activeTab === 'despesas-casa' ? 'text-blue-600 font-semibold' : 'text-gray-500'}`}
+            >
+              <span>🏠</span>
+              <span>Casa</span>
+            </button>
+          </nav>
+
+          {/* Conteúdo com espaço para o menu inferior */}
+          <main className="flex-1 p-3 pb-20 max-w-xl mx-auto w-full">
+            {/* Dashboard */}
+            {activeTab === 'dashboard' && (
+              <div>
+                <div className="grid grid-cols-2 gap-3 mb-4">
+                  <div className="bg-green-500 text-white rounded-lg p-3">
+                    <div className="text-xs opacity-90">Receita Corridas</div>
+                    <div className="text-xl font-bold mt-1">R$ {totalRides.toFixed(2)}</div>
+                  </div>
+                  <div className="bg-orange-500 text-white rounded-lg p-3">
+                    <div className="text-xs opacity-90">Despesas Trabalho</div>
+                    <div className="text-xl font-bold mt-1">R$ {totalExpenses.toFixed(2)}</div>
+                  </div>
+                  <div className="bg-blue-500 text-white rounded-lg p-3">
+                    <div className="text-xs opacity-90">Lucro Trabalho</div>
+                    <div className="text-xl font-bold mt-1">R$ {workProfit.toFixed(2)}</div>
+                  </div>
+                  <div className="bg-red-500 text-white rounded-lg p-3">
+                    <div className="text-xs opacity-90">Despesas Casa</div>
+                    <div className="text-xl font-bold mt-1">R$ {totalHouseExpenses.toFixed(2)}</div>
+                  </div>
+                </div>
+
+                <div className={`${finalBalance >= 0 ? 'bg-teal-600' : 'bg-red-700'} text-white rounded-lg p-4 mb-4`}>
+                  <div className="text-xs opacity-90">Saldo Final</div>
+                  <div className="text-2xl font-bold mt-1">R$ {finalBalance.toFixed(2)}</div>
+                </div>
+
+                <div className="bg-white rounded-lg shadow p-4">
+                  <h2 className="text-lg font-bold mb-2">📋 Atividade Recente</h2>
+                  <div className="space-y-2 text-sm">
+                    {[...rides.slice(-3).map(r => ({...r, type: 'ride'})),
+                      ...expenses.slice(-3).map(e => ({...e, type: 'expense'})),
+                      ...houseExpenses.slice(-3).map(h => ({...h, type: 'house'}))]
+                      .sort((a, b) => new Date(b.date) - new Date(a.date))
+                      .slice(0, 5)
+                      .map((item, idx) => (
+                        <div key={idx} className="flex justify-between items-center bg-gray-50 rounded px-2 py-2">
+                          <div>
+                            <span className="font-semibold">
+                              {item.type === 'ride' && '🚗 Corrida'}
+                              {item.type === 'expense' && '⛽ Trabalho'}
+                              {item.type === 'house' && '🏠 Casa'}
+                            </span>
+                            <span className="text-gray-500 text-xs ml-1">{item.date}</span>
+                          </div>
+                          <span className={`font-bold ${item.type === 'ride' ? 'text-green-600' : 'text-red-600'}`}>
+                            {item.type === 'ride' ? '+' : '-'} R$ {item.value.toFixed(2)}
+                          </span>
+                        </div>
+                      ))}
+                    {rides.length === 0 && expenses.length === 0 && houseExpenses.length === 0 && (
+                      <p className="text-center text-gray-400 py-4 text-xs">
+                        Nenhuma atividade registrada ainda
+                      </p>
+                    )}
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Corridas */}
+            {activeTab === 'corridas' && (
+              <div>
+                <div className="flex justify-between items-center mb-3">
+                  <h2 className="text-lg font-bold">🚗 Corridas</h2>
+                  <button
+                    onClick={() => setShowRideModal(true)}
+                    className="bg-blue-600 text-white text-sm px-3 py-1.5 rounded-lg"
+                  >
+                    + Corrida
+                  </button>
+                </div>
+
+                {rides.length === 0 && (
+                  <p className="text-center text-gray-400 text-sm mt-6">
+                    Nenhuma corrida registrada
+                  </p>
+                )}
+
+                {rides.map(ride => (
+                  <div key={ride.id} className={mobileCardClass}>
+                    <div className="flex justify-between items-center mb-1">
+                      <span className="font-semibold">{ride.app}</span>
+                      <span className="text-xs text-gray-500">{ride.date}</span>
+                    </div>
+                    <div className="text-sm text-gray-600 mb-1">
+                      {ride.distance && <span>{ride.distance} km • </span>}
+                      {ride.time && <span>{ride.time} min</span>}
+                    </div>
+                    <div className="flex justify-between items-center">
+                      <span className="font-bold text-green-600">R$ {ride.value.toFixed(2)}</span>
+                      <button
+                        onClick={() => deleteRide(ride.id)}
+                        className="text-xs text-red-600"
+                      >
+                        Excluir
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {/* Despesas Trabalho */}
+            {activeTab === 'despesas-trabalho' && (
+              <div>
+                <div className="flex justify-between items-center mb-3">
+                  <h2 className="text-lg font-bold">⛽ Despesas Trabalho</h2>
+                  <button
+                    onClick={() => setShowExpenseModal(true)}
+                    className="bg-orange-600 text-white text-sm px-3 py-1.5 rounded-lg"
+                  >
+                    + Despesa
+                  </button>
+                </div>
+
+                {expenses.length === 0 && (
+                  <p className="text-center text-gray-400 text-sm mt-6">
+                    Nenhuma despesa registrado
+                  </p>
+                )}
+
+                {expenses.map(expense => (
+                  <div key={expense.id} className={mobileCardClass}>
+                    <div className="flex justify-between items-center mb-1">
+                      <span className="font-semibold">{expense.category}</span>
+                      <span className="text-xs text-gray-500">{expense.date}</span>
+                    </div>
+                    {expense.description && (
+                      <div className="text-sm text-gray-600 mb-1">
+                        {expense.description}
+                      </div>
+                    )}
+                    <div className="flex justify-between items-center">
+                      <span className="font-bold text-red-600">R$ {expense.value.toFixed(2)}</span>
+                      <button
+                        onClick={() => deleteExpense(expense.id)}
+                        className="text-xs text-red-600"
+                      >
+                        Excluir
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {/* Despesas Casa */}
+            {activeTab === 'despesas-casa' && (
+              <div>
+                <div className="flex justify-between items-center mb-3">
+                  <h2 className="text-lg font-bold">🏠 Despesas Casa</h2>
+                  <button
+                    onClick={() => setShowHouseModal(true)}
+                    className="bg-red-600 text-white text-sm px-3 py-1.5 rounded-lg"
+                  >
+                    + Despesa
+                  </button>
+                </div>
+
+                {houseExpenses.length === 0 && (
+                  <p className="text-center text-gray-400 text-sm mt-6">
+                    Nenhuma despesa registrada
+                  </p>
+                )}
+
+                {houseExpenses.map(house => (
+                  <div key={house.id} className={mobileCardClass}>
+                    <div className="flex justify-between items-center mb-1">
+                      <span className="font-semibold">{house.category}</span>
+                      <span className="text-xs text-gray-500">{house.date}</span>
+                    </div>
+                    {house.description && (
+                      <div className="text-sm text-gray-600 mb-1">
+                        {house.description}
+                      </div>
+                    )}
+                    <div className="flex justify-between items-center">
+                      <span className="font-bold text-red-600">R$ {house.value.toFixed(2)}</span>
+                      <button
+                        onClick={() => deleteHouseExpense(house.id)}
+                        className="text-xs text-red-600"
+                      >
+                        Excluir
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </main>
+
+          {/* Modais (Corrida, Trabalho, Casa) */}
+          {showRideModal && (
+            <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4">
+              <div className="bg-white rounded-lg p-4 w-full max-w-sm">
+                <h3 className="text-lg font-bold mb-3">🚗 Nova Corrida</h3>
+                <div className="space-y-3 text-sm">
+                  <div>
+                    <label className="block mb-1">Data</label>
+                    <input
+                      type="date"
+                      value={rideForm.date}
+                      onChange={e => setRideForm({...rideForm, date: e.target.value})}
+                      className="w-full border rounded px-2 py-2"
+                    />
+                  </div>
+                  <div>
+                    <label className="block mb-1">Aplicativo</label>
+                    <select
+                      value={rideForm.app}
+                      onChange={e => setRideForm({...rideForm, app: e.target.value})}
+                      className="w-full border rounded px-2 py-2"
+                    >
+                      <option>Uber</option>
+                      <option>99</option>
+                      <option>InDriver</option>
+                      <option>Outro</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block mb-1">Valor (R$)</label>
+                    <input
+                      type="number"
+                      step="0.01"
+                      value={rideForm.value}
+                      onChange={e => setRideForm({...rideForm, value: e.target.value})}
+                      className="w-full border rounded px-2 py-2"
+                      placeholder="0,00"
+                    />
+                  </div>
+                  <div>
+                    <label className="block mb-1">Distância (km)</label>
+                    <input
+                      type="number"
+                      value={rideForm.distance}
+                      onChange={e => setRideForm({...rideForm, distance: e.target.value})}
+                      className="w-full border rounded px-2 py-2"
+                      placeholder="0"
+                    />
+                  </div>
+                  <div>
+                    <label className="block mb-1">Tempo (min)</label>
+                    <input
+                      type="number"
+                      value={rideForm.time}
+                      onChange={e => setRideForm({...rideForm, time: e.target.value})}
+                      className="w-full border rounded px-2 py-2"
+                      placeholder="0"
+                    />
+                  </div>
+                </div>
+                <div className="flex gap-2 mt-4">
+                  <button
+                    onClick={() => setShowRideModal(false)}
+                    className="flex-1 bg-gray-300 text-gray-800 py-2 rounded"
+                  >
+                    Cancelar
+                  </button>
+                  <button
+                    onClick={addRide}
+                    className="flex-1 bg-blue-600 text-white py-2 rounded"
+                  >
+                    Salvar
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {showExpenseModal && (
+            <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4">
+              <div className="bg-white rounded-lg p-4 w-full max-w-sm">
+                <h3 className="text-lg font-bold mb-3">⛽ Nova Despesa Trabalho</h3>
+                <div className="space-y-3 text-sm">
+                  <div>
+                    <label className="block mb-1">Data</label>
+                    <input
+                      type="date"
+                      value={expenseForm.date}
+                      onChange={e => setExpenseForm({...expenseForm, date: e.target.value})}
+                      className="w-full border rounded px-2 py-2"
+                    />
+                  </div>
+                  <div>
+                    <label className="block mb-1">Categoria</label>
+                    <select
+                      value={expenseForm.category}
+                      onChange={e => setExpenseForm({...expenseForm, category: e.target.value})}
+                      className="w-full border rounded px-2 py-2"
+                    >
+                      <option>Combustível</option>
+                      <option>Manutenção</option>
+                      <option>Lavagem</option>
+                      <option>Pedágio</option>
+                      <option>Estacionamento</option>
+                      <option>Água/Lanche</option>
+                      <option>Outro</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block mb-1">Descrição</label>
+                    <input
+                      type="text"
+                      value={expenseForm.description}
+                      onChange={e => setExpenseForm({...expenseForm, description: e.target.value})}
+                      className="w-full border rounded px-2 py-2"
+                      placeholder="Detalhes da despesa"
+                    />
+                  </div>
+                  <div>
+                    <label className="block mb-1">Valor (R$)</label>
+                    <input
+                      type="number"
+                      step="0.01"
+                      value={expenseForm.value}
+                      onChange={e => setExpenseForm({...expenseForm, value: e.target.value})}
+                      className="w-full border rounded px-2 py-2"
+                      placeholder="0,00"
+                    />
+                  </div>
+                </div>
+                <div className="flex gap-2 mt-4">
+                  <button
+                    onClick={() => setShowExpenseModal(false)}
+                    className="flex-1 bg-gray-300 text-gray-800 py-2 rounded"
+                  >
+                    Cancelar
+                  </button>
+                  <button
+                    onClick={addExpense}
+                    className="flex-1 bg-orange-600 text-white py-2 rounded"
+                  >
+                    Salvar
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {showHouseModal && (
+            <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4">
+              <div className="bg-white rounded-lg p-4 w-full max-w-sm">
+                <h3 className="text-lg font-bold mb-3">🏠 Nova Despesa Casa</h3>
+                <div className="space-y-3 text-sm">
+                  <div>
+                    <label className="block mb-1">Data</label>
+                    <input
+                      type="date"
+                      value={houseForm.date}
+                      onChange={e => setHouseForm({...houseForm, date: e.target.value})}
+                      className="w-full border rounded px-2 py-2"
+                    />
+                  </div>
+                  <div>
+                    <label className="block mb-1">Categoria</label>
+                    <select
+                      value={houseForm.category}
+                      onChange={e => setHouseForm({...houseForm, category: e.target.value})}
+                      className="w-full border rounded px-2 py-2"
+                    >
+                      <option>Alimentação</option>
+                      <option>Aluguel</option>
+                      <option>Água</option>
+                      <option>Luz</option>
+                      <option>Internet</option>
+                      <option>Gás</option>
+                      <option>Telefone</option>
+                      <option>Educação</option>
+                      <option>Saúde</option>
+                      <option>Transporte</option>
+                      <option>Lazer</option>
+                      <option>Outro</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block mb-1">Descrição</label>
+                    <input
+                      type="text"
+                      value={houseForm.description}
+                      onChange={e => setHouseForm({...houseForm, description: e.target.value})}
+                      className="w-full border rounded px-2 py-2"
+                      placeholder="Detalhes da despesa"
+                    />
+                  </div>
+                  <div>
+                    <label className="block mb-1">Valor (R$)</label>
+                    <input
+                      type="number"
+                      step="0.01"
+                      value={houseForm.value}
+                      onChange={e => setHouseForm({...houseForm, value: e.target.value})}
+                      className="w-full border rounded px-2 py-2"
+                      placeholder="0,00"
+                    />
+                  </div>
+                </div>
+                <div className="flex gap-2 mt-4">
+                  <button
+                    onClick={() => setShowHouseModal(false)}
+                    className="flex-1 bg-gray-300 text-gray-800 py-2 rounded"
+                  >
+                    Cancelar
+                  </button>
+                  <button
+                    onClick={addHouseExpense}
+                    className="flex-1 bg-red-600 text-white py-2 rounded"
+                  >
+                    Salvar
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
+      );
+    }
+
+    ReactDOM.render(<App />, document.getElementById('root'));
+  </script>
+</body>
+</html>
