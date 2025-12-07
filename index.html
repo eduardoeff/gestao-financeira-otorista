@@ -2,11 +2,29 @@
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8" />
-  <title>Teste simples</title>
+  <title>Teste React</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/react@17/umd/react.production.min.js"></script>
+  <script src="https://unpkg.com/react-dom@17/umd/react-dom.production.min.js"></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
 </head>
-<body>
-  <h1>FUNCIONOU!</h1>
-  <p>Se você está vendo este texto, o deploy está ok.</p>
+<body class="bg-gray-100">
+  <div id="root"></div>
+
+  <script type="text/babel">
+    function App() {
+      return (
+        <div className="min-h-screen flex items-center justify-center">
+          <h1 className="text-2xl font-bold text-blue-600">
+            App do Motorista – teste React
+          </h1>
+        </div>
+      );
+    }
+
+    ReactDOM.render(<App />, document.getElementById('root'));
+  </script>
 </body>
 </html>
