@@ -5,451 +5,12 @@
   <title>Gestão Financeira Inteligente - Gordinho do Comfort</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
 
-  <!-- Tailwind CDN (ok para GitHub Pages, ignore o aviso em amarelo) -->
+  <!-- Tailwind CDN -->
   <script src="https://cdn.tailwindcss.com"></script>
 
-  <!-- Chart.js para gráfico de evolução -->
+  <!-- Chart.js -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-</head>
-<body class="bg-slate-950 text-slate-100 min-h-screen flex flex-col">
 
-  <!-- HEADER -->
-  <header class="bg-slate-900 border-b border-slate-800">
-    <div class="max-w-5xl mx-auto flex items-center justify-between px-4 sm:px-6 py-3">
-      <div class="flex items-center gap-3">
-        <img
-          src="https://raw.githubusercontent.com/eduardoeff/gestao-financeira-motorista/main/logo-gordinho-comfort.png"
-          alt="Logo Gordinho do Comfort"
-          class="w-10 h-10 sm:w-12 sm:h-12 rounded-full border border-emerald-400 shadow-lg object-cover"
-        />
-        <div>
-          <h1 class="text-lg sm:text-xl md:text-2xl font-bold text-emerald-400">
-            Gestão Financeira Inteligente
-          </h1>
-          <p class="text-xs sm:text-sm text-slate-400">
-            Gordinho do Comfort • Controle total dos ganhos e despesas
-          </p>
-        </div>
-      </div>
-
-      <button
-        id="logoutBtn"
-        class="hidden sm:inline-flex px-3 py-1.5 rounded-lg text-sm font-medium bg-slate-800 text-slate-100 border border-slate-700 hover:border-emerald-400 hover:text-emerald-400 transition"
-      >
-        Sair
-      </button>
-    </div>
-  </header>
-
-  <!-- MAIN -->
-  <main class="flex-1">
-    <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6">
-
-      <!-- CARD LOGIN -->
-      <section id="authSection" class="max-w-md mx-auto mt-8 sm:mt-12">
-        <div class="bg-slate-900/80 border border-slate-800 rounded-2xl shadow-xl p-6 sm:p-8">
-          <h2 class="text-xl sm:text-2xl font-semibold text-center mb-1">
-            Entrar
-          </h2>
-          <p class="text-xs sm:text-sm text-slate-400 text-center mb-4">
-            Acesse seu painel financeiro do <span class="text-emerald-400 font-semibold">Gordinho do Comfort</span>
-          </p>
-
-          <label class="block text-xs sm:text-sm text-slate-300 mb-1">E-mail</label>
-          <input
-            id="emailInput"
-            type="email"
-            class="w-full mb-3 px-3 py-2 rounded-lg bg-slate-800 border border-slate-700 text-sm focus:outline-none focus:border-emerald-400"
-            placeholder="seuemail@exemplo.com"
-          />
-
-          <label class="block text-xs sm:text-sm text-slate-300 mb-1">Senha</label>
-          <input
-            id="passwordInput"
-            type="password"
-            class="w-full mb-4 px-3 py-2 rounded-lg bg-slate-800 border border-slate-700 text-sm focus:outline-none focus:border-emerald-400"
-            placeholder="********"
-          />
-
-          <button
-            id="loginBtn"
-            class="w-full mb-2 px-4 py-2 rounded-lg bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-semibold text-sm transition"
-          >
-            Entrar
-          </button>
-          <button
-            id="registerBtn"
-            class="w-full px-4 py-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-100 text-sm border border-slate-700"
-          >
-            Criar Conta
-          </button>
-        </div>
-      </section>
-
-      <!-- APP PRINCIPAL -->
-      <section id="appSection" class="hidden mt-4 sm:mt-6">
-        <!-- NAV TABS -->
-        <nav class="flex flex-wrap gap-2 mb-4">
-          <button data-tab="dashboard" class="tab-btn px-3 py-1.5 rounded-full border border-emerald-400 bg-emerald-500/20 text-xs sm:text-sm font-medium text-emerald-300">
-            📊 Dashboard
-          </button>
-          <button data-tab="earnings" class="tab-btn px-3 py-1.5 rounded-full border border-slate-700 bg-slate-900 text-xs sm:text-sm font-medium text-slate-200">
-            💰 Ganhos
-          </button>
-          <button data-tab="goals" class="tab-btn px-3 py-1.5 rounded-full border border-slate-700 bg-slate-900 text-xs sm:text-sm font-medium text-slate-200">
-            🎯 Metas
-          </button>
-          <button data-tab="work" class="tab-btn px-3 py-1.5 rounded-full border border-slate-700 bg-slate-900 text-xs sm:text-sm font-medium text-slate-200">
-            🚗 Trabalho
-          </button>
-          <button data-tab="home" class="tab-btn px-3 py-1.5 rounded-full border border-slate-700 bg-slate-900 text-xs sm:text-sm font-medium text-slate-200">
-            🏠 Casa
-          </button>
-
-          <button
-            id="logoutBtnMobile"
-            class="ml-auto sm:hidden px-3 py-1.5 rounded-full border border-slate-700 bg-slate-900 text-xs font-medium text-slate-200"
-          >
-            Sair
-          </button>
-        </nav>
-
-        <!-- DASHBOARD -->
-        <section id="tab-dashboard" class="tab-panel">
-          <!-- Filtro de período -->
-          <div class="flex flex-wrap items-center gap-2 mb-4">
-            <span class="text-xs sm:text-sm text-slate-400 mr-2">Período:</span>
-            <button class="period-btn period-active" data-period="last7">Última Semana</button>
-            <button class="period-btn" data-period="month">Mês Atual</button>
-            <button class="period-btn" data-period="year">Ano Atual</button>
-            <button class="period-btn" data-period="prevMonth">Mês Anterior</button>
-          </div>
-
-          <!-- Cards principais -->
-          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-4">
-            <div class="card">
-              <p class="card-label">Ganhos</p>
-              <p id="totalEarningsDisplay" class="card-value">R$ 0,00</p>
-            </div>
-            <div class="card">
-              <p class="card-label">Despesas Trabalho</p>
-              <p id="totalWorkExpensesDisplay" class="card-value">R$ 0,00</p>
-            </div>
-            <div class="card">
-              <p class="card-label">Despesas Casa</p>
-              <p id="totalHouseExpensesDisplay" class="card-value">R$ 0,00</p>
-            </div>
-            <div class="card">
-              <p class="card-label">Lucro</p>
-              <p id="profitDisplay" class="card-value text-emerald-400">R$ 0,00</p>
-            </div>
-            <div class="card">
-              <p class="card-label">Saldo Final (após Casa)</p>
-              <p id="finalBalanceDisplay" class="card-value">R$ 0,00</p>
-            </div>
-          </div>
-
-          <!-- Indicadores de eficiência -->
-          <div class="bg-slate-900/80 border border-slate-800 rounded-2xl p-4 sm:p-5 mb-4">
-            <h3 class="text-sm sm:text-base font-semibold mb-3 text-emerald-300">
-              📈 Indicadores de Eficiência
-            </h3>
-
-            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-              <div>
-                <p class="text-xs text-slate-400 mb-1">Ticket Médio</p>
-                <p id="avgTicketDisplay" class="text-lg font-semibold">R$ 0,00</p>
-              </div>
-              <div>
-                <p class="text-xs text-slate-400 mb-1">Custo/Dia</p>
-                <p id="costPerDayDisplay" class="text-lg font-semibold">R$ 0,00</p>
-              </div>
-              <div>
-                <p class="text-xs text-slate-400 mb-1">Margem</p>
-                <p id="marginDisplay" class="text-lg font-semibold">0%</p>
-              </div>
-              <div>
-                <p class="text-xs text-slate-400 mb-1">Meta Diária Atual</p>
-                <p id="currentDailyGoalDisplay" class="text-lg font-semibold text-emerald-400">
-                  R$ 0,00
-                </p>
-              </div>
-            </div>
-          </div>
-
-          <!-- Gráfico -->
-          <div class="bg-slate-900/80 border border-slate-800 rounded-2xl p-4 sm:p-5">
-            <div class="flex items-center justify-between mb-3">
-              <h3 class="text-sm sm:text-base font-semibold text-emerald-300">
-                📊 Evolução dos Ganhos (Mês Completo)
-              </h3>
-            </div>
-            <canvas id="earningsChart" class="w-full h-48 sm:h-64"></canvas>
-          </div>
-        </section>
-
-        <!-- GANHOS -->
-        <section id="tab-earnings" class="tab-panel hidden">
-          <div class="flex justify-between items-center mb-3">
-            <h3 class="text-sm sm:text-base font-semibold text-emerald-300">
-              💰 Ganhos Diários
-            </h3>
-            <button
-              id="openEarningsModalBtn"
-              class="px-3 py-1.5 rounded-lg text-xs sm:text-sm font-medium bg-emerald-500 text-slate-950 hover:bg-emerald-400"
-            >
-              + Adicionar Ganho do Dia
-            </button>
-          </div>
-          <p class="text-xs text-slate-400 mb-2">
-            Os ganhos salvos aqui alimentam o dashboard, indicadores e metas.
-          </p>
-          <ul id="earningsList" class="space-y-2 text-xs sm:text-sm">
-            <!-- preenchido via JS -->
-          </ul>
-        </section>
-
-        <!-- METAS -->
-        <section id="tab-goals" class="tab-panel hidden space-y-4">
-          <div class="bg-slate-900/80 border border-slate-800 rounded-2xl p-4 sm:p-5">
-            <h3 class="text-sm sm:text-base font-semibold text-emerald-300 mb-3">
-              🎯 Meta Mensal
-            </h3>
-            <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 items-end">
-              <div>
-                <label class="label">Mês</label>
-                <input
-                  id="monthlyGoalMonth"
-                  type="month"
-                  class="input"
-                />
-              </div>
-              <div>
-                <label class="label">Valor da Meta (R$)</label>
-                <input
-                  id="monthlyGoalValue"
-                  type="number"
-                  min="0"
-                  step="0.01"
-                  class="input"
-                  placeholder="ex: 6000"
-                />
-              </div>
-              <div class="flex gap-2">
-                <button
-                  id="saveMonthlyGoalBtn"
-                  class="btn-primary flex-1"
-                >
-                  Salvar Meta Mensal
-                </button>
-              </div>
-            </div>
-          </div>
-
-          <div class="bg-slate-900/80 border border-slate-800 rounded-2xl p-4 sm:p-5">
-            <h3 class="text-sm sm:text-base font-semibold text-emerald-300 mb-3">
-              🎯 Meta Semanal
-            </h3>
-            <div class="grid grid-cols-1 sm:grid-cols-4 gap-3 items-end">
-              <div>
-                <label class="label">Mês</label>
-                <input
-                  id="weeklyGoalMonth"
-                  type="month"
-                  class="input"
-                />
-              </div>
-              <div>
-                <label class="label">Semanas</label>
-                <select id="weeklyGoalWeeks" class="input" multiple>
-                  <option value="1">Semana 1</option>
-                  <option value="2">Semana 2</option>
-                  <option value="3">Semana 3</option>
-                  <option value="4">Semana 4</option>
-                  <option value="5">Semana 5</option>
-                </select>
-                <p class="text-[10px] text-slate-500 mt-1">
-                  Use Ctrl (ou Command) para selecionar várias semanas.
-                </p>
-              </div>
-              <div>
-                <label class="label">Valor da Meta (R$)</label>
-                <input
-                  id="weeklyGoalValue"
-                  type="number"
-                  min="0"
-                  step="0.01"
-                  class="input"
-                  placeholder="ex: 1500"
-                />
-              </div>
-              <div class="flex gap-2">
-                <button
-                  id="saveWeeklyGoalBtn"
-                  class="btn-primary flex-1"
-                >
-                  Salvar Meta Semanal
-                </button>
-              </div>
-            </div>
-          </div>
-
-          <div class="bg-slate-900/80 border border-slate-800 rounded-2xl p-4 sm:p-5 flex flex-col sm:flex-row items-start sm:items-center gap-3">
-            <div class="flex-1">
-              <p class="text-xs text-slate-400 mb-1">Meta Diária Atual</p>
-              <p id="goalsCurrentDailyDisplay" class="text-xl font-semibold text-emerald-400">
-                R$ 0,00
-              </p>
-              <p class="text-[10px] text-slate-500 mt-1">
-                Calculada automaticamente com base na meta mensal/semanal selecionada para o mês atual.
-              </p>
-            </div>
-            <button
-              id="clearGoalsBtn"
-              class="px-3 py-1.5 rounded-lg border border-red-500/70 text-xs sm:text-sm text-red-300 hover:bg-red-500/10"
-            >
-              Limpar Metas
-            </button>
-          </div>
-        </section>
-
-        <!-- TRABALHO -->
-        <section id="tab-work" class="tab-panel hidden">
-          <div class="flex justify-between items-center mb-3">
-            <h3 class="text-sm sm:text-base font-semibold text-emerald-300">
-              🚗 Despesas de Trabalho
-            </h3>
-            <button
-              id="openWorkExpenseModalBtn"
-              class="px-3 py-1.5 rounded-lg text-xs sm:text-sm font-medium bg-emerald-500 text-slate-950 hover:bg-emerald-400"
-            >
-              + Adicionar Despesa
-            </button>
-          </div>
-          <ul id="workExpensesList" class="space-y-2 text-xs sm:text-sm">
-            <!-- preenchido via JS -->
-          </ul>
-        </section>
-
-        <!-- CASA -->
-        <section id="tab-home" class="tab-panel hidden">
-          <div class="flex justify-between items-center mb-3">
-            <h3 class="text-sm sm:text-base font-semibold text-emerald-300">
-              🏠 Despesas de Casa
-            </h3>
-            <button
-              id="openHouseExpenseModalBtn"
-              class="px-3 py-1.5 rounded-lg text-xs sm:text-sm font-medium bg-emerald-500 text-slate-950 hover:bg-emerald-400"
-            >
-              + Adicionar Despesa
-            </button>
-          </div>
-          <ul id="houseExpensesList" class="space-y-2 text-xs sm:text-sm">
-            <!-- preenchido via JS -->
-          </ul>
-        </section>
-      </section>
-    </div>
-  </main>
-
-  <!-- MODAL GANHOS -->
-  <div id="earningsModal" class="fixed inset-0 bg-black/60 flex items-center justify-center z-40 hidden">
-    <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5 w-full max-w-md mx-4">
-      <h3 class="text-sm sm:text-base font-semibold text-emerald-300 mb-3">
-        💰 Adicionar Ganho do Dia
-      </h3>
-
-      <label class="label">Data</label>
-      <input id="earningsDate" type="date" class="input mb-2" />
-
-      <label class="label">Plataforma</label>
-      <select id="earningsPlatform" class="input mb-2">
-        <option value="Uber">Uber</option>
-        <option value="99">99</option>
-        <option value="InDriver">InDriver</option>
-        <option value="Outros">Outros</option>
-      </select>
-
-      <label class="label">Valor (R$)</label>
-      <input id="earningsAmount" type="number" min="0" step="0.01" class="input mb-2" />
-
-      <label class="label">Observações (opcional)</label>
-      <textarea id="earningsNotes" rows="2" class="input mb-4"></textarea>
-
-      <div class="flex justify-end gap-2">
-        <button id="cancelEarningsBtn" class="btn-secondary">Cancelar</button>
-        <button id="saveEarningsBtn" class="btn-primary">Salvar</button>
-      </div>
-    </div>
-  </div>
-
-  <!-- MODAL DESPESA TRABALHO -->
-  <div id="workExpenseModal" class="fixed inset-0 bg-black/60 flex items-center justify-center z-40 hidden">
-    <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5 w-full max-w-md mx-4">
-      <h3 class="text-sm sm:text-base font-semibold text-emerald-300 mb-3">
-        🚗 Adicionar Despesa de Trabalho
-      </h3>
-
-      <label class="label">Data</label>
-      <input id="workExpenseDate" type="date" class="input mb-2" />
-
-      <label class="label">Categoria</label>
-      <select id="workExpenseCategory" class="input mb-2">
-        <option value="Combustível">Combustível</option>
-        <option value="Manutenção">Manutenção</option>
-        <option value="Lavagem">Lavagem</option>
-        <option value="Pedágio">Pedágio</option>
-        <option value="Estacionamento">Estacionamento</option>
-        <option value="Outros">Outros</option>
-      </select>
-
-      <label class="label">Valor (R$)</label>
-      <input id="workExpenseAmount" type="number" min="0" step="0.01" class="input mb-2" />
-
-      <label class="label">Descrição (opcional)</label>
-      <textarea id="workExpenseDescription" rows="2" class="input mb-4"></textarea>
-
-      <div class="flex justify-end gap-2">
-        <button id="cancelWorkExpenseBtn" class="btn-secondary">Cancelar</button>
-        <button id="saveWorkExpenseBtn" class="btn-primary">Salvar</button>
-      </div>
-    </div>
-  </div>
-
-  <!-- MODAL DESPESA CASA -->
-  <div id="houseExpenseModal" class="fixed inset-0 bg-black/60 flex items-center justify-center z-40 hidden">
-    <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5 w-full max-w-md mx-4">
-      <h3 class="text-sm sm:text-base font-semibold text-emerald-300 mb-3">
-        🏠 Adicionar Despesa de Casa
-      </h3>
-
-      <label class="label">Data</label>
-      <input id="houseExpenseDate" type="date" class="input mb-2" />
-
-      <label class="label">Categoria</label>
-      <select id="houseExpenseCategory" class="input mb-2">
-        <option value="Aluguel">Aluguel</option>
-        <option value="Água">Água</option>
-        <option value="Luz">Luz</option>
-        <option value="Internet">Internet</option>
-        <option value="Mercado">Mercado</option>
-        <option value="Outros">Outros</option>
-      </select>
-
-      <label class="label">Valor (R$)</label>
-      <input id="houseExpenseAmount" type="number" min="0" step="0.01" class="input mb-2" />
-
-      <label class="label">Descrição (opcional)</label>
-      <textarea id="houseExpenseDescription" rows="2" class="input mb-4"></textarea>
-
-      <div class="flex justify-end gap-2">
-        <button id="cancelHouseExpenseBtn" class="btn-secondary">Cancelar</button>
-        <button id="saveHouseExpenseBtn" class="btn-primary">Salvar</button>
-      </div>
-    </div>
-  </div>
-
-  <!-- ESTILOS UTILITÁRIOS -->
   <style>
     .card {
       @apply bg-slate-900/80 border border-slate-800 rounded-2xl p-4 sm:p-5;
@@ -478,9 +39,522 @@
     .period-active {
       @apply border-emerald-400 text-emerald-300 bg-emerald-500/10;
     }
+    .section-title {
+      @apply text-sm sm:text-base font-semibold text-emerald-300 mb-1;
+    }
+    .section-subtitle {
+      @apply text-[11px] sm:text-xs text-slate-400 mb-3;
+    }
   </style>
+</head>
+<body class="bg-slate-950 text-slate-100 min-h-screen flex flex-col">
 
-  <!-- FIREBASE + LÓGICA DO APP -->
+  <!-- HEADER -->
+  <header class="bg-slate-900/90 border-b border-slate-800 backdrop-blur">
+    <div class="max-w-5xl mx-auto flex items-center justify-between px-4 sm:px-6 py-3">
+      <div class="flex items-center gap-3">
+        <img
+          src="https://raw.githubusercontent.com/eduardoeff/gestao-financeira-motorista/main/logo-gordinho-comfort.png"
+          alt="Logo Gordinho do Comfort"
+          class="w-10 h-10 sm:w-12 sm:h-12 rounded-full border border-emerald-400 shadow-lg object-cover"
+        />
+        <div>
+          <h1 class="text-lg sm:text-xl md:text-2xl font-bold text-emerald-400">
+            Gestão Financeira Inteligente
+          </h1>
+          <p class="text-[11px] sm:text-xs text-slate-400">
+            Gordinho do Comfort • Controle completo de ganhos, despesas e metas.
+          </p>
+        </div>
+      </div>
+
+      <button
+        id="logoutBtn"
+        class="hidden sm:inline-flex px-3 py-1.5 rounded-lg text-xs font-medium bg-slate-900 text-slate-100 border border-slate-700 hover:border-emerald-400 hover:text-emerald-400 transition"
+      >
+        Sair
+      </button>
+    </div>
+  </header>
+
+  <!-- MAIN -->
+  <main class="flex-1">
+    <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6">
+
+      <!-- LOGIN -->
+      <section id="authSection" class="max-w-md mx-auto mt-8 sm:mt-12">
+        <div class="bg-slate-900/90 border border-slate-800 rounded-2xl shadow-2xl p-6 sm:p-8">
+          <h2 class="text-xl sm:text-2xl font-semibold text-center mb-1">
+            Entrar no painel financeiro
+          </h2>
+          <p class="text-xs sm:text-sm text-slate-400 text-center mb-5">
+            Acompanhe seus <span class="text-emerald-400 font-semibold">ganhos diários, despesas de trabalho e de casa</span> em um só lugar.
+          </p>
+
+          <div class="space-y-3 mb-4">
+            <div>
+              <label class="label">E-mail</label>
+              <input
+                id="emailInput"
+                type="email"
+                class="input"
+                placeholder="seuemail@exemplo.com"
+              />
+            </div>
+            <div>
+              <label class="label">Senha</label>
+              <input
+                id="passwordInput"
+                type="password"
+                class="input"
+                placeholder="********"
+              />
+            </div>
+          </div>
+
+          <button
+            id="loginBtn"
+            class="w-full mb-2 px-4 py-2 rounded-lg bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-semibold text-sm transition"
+          >
+            Entrar
+          </button>
+          <button
+            id="registerBtn"
+            class="w-full px-4 py-2 rounded-lg bg-slate-900 hover:bg-slate-800 text-slate-100 text-sm border border-slate-700"
+          >
+            Criar nova conta
+          </button>
+
+          <p class="mt-3 text-[11px] text-slate-500 text-center">
+            Seus dados ficam salvos com segurança no <span class="text-emerald-400 font-medium">Firebase</span>.
+          </p>
+        </div>
+      </section>
+
+      <!-- APP PRINCIPAL -->
+      <section id="appSection" class="hidden mt-4 sm:mt-6 space-y-4">
+
+        <!-- INFO DO USUÁRIO / RESUMO -->
+        <div class="bg-slate-900/80 border border-slate-800 rounded-2xl px-3 sm:px-4 py-3 flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-3">
+          <div class="flex-1">
+            <p class="text-xs text-slate-400">
+              Bem-vindo, <span id="userEmailLabel" class="text-slate-100 font-medium">motorista</span>.
+            </p>
+            <p class="text-[11px] text-slate-500">
+              Use as abas abaixo para cadastrar ganhos, despesas e metas, e acompanhe tudo no Dashboard.
+            </p>
+          </div>
+          <button
+            id="logoutBtnMobile"
+            class="sm:hidden mt-2 px-3 py-1.5 rounded-lg border border-slate-700 bg-slate-900 text-xs font-medium text-slate-200"
+          >
+            Sair
+          </button>
+        </div>
+
+        <!-- NAV TABS -->
+        <nav class="flex flex-wrap gap-2 mb-1">
+          <button data-tab="dashboard" class="tab-btn px-3 py-1.5 rounded-full border border-emerald-400 bg-emerald-500/20 text-xs sm:text-sm font-medium text-emerald-300">
+            📊 Dashboard
+          </button>
+          <button data-tab="earnings" class="tab-btn px-3 py-1.5 rounded-full border border-slate-700 bg-slate-900 text-xs sm:text-sm font-medium text-slate-200">
+            💰 Ganhos
+          </button>
+          <button data-tab="goals" class="tab-btn px-3 py-1.5 rounded-full border border-slate-700 bg-slate-900 text-xs sm:text-sm font-medium text-slate-200">
+            🎯 Metas
+          </button>
+          <button data-tab="work" class="tab-btn px-3 py-1.5 rounded-full border border-slate-700 bg-slate-900 text-xs sm:text-sm font-medium text-slate-200">
+            🚗 Trabalho
+          </button>
+          <button data-tab="home" class="tab-btn px-3 py-1.5 rounded-full border border-slate-700 bg-slate-900 text-xs sm:text-sm font-medium text-slate-200">
+            🏠 Casa
+          </button>
+        </nav>
+
+        <!-- DASHBOARD -->
+        <section id="tab-dashboard" class="tab-panel space-y-4">
+          <div>
+            <h3 class="section-title">Visão geral financeira</h3>
+            <p class="section-subtitle">
+              Veja o resumo do período selecionado: ganhos, despesas de trabalho, despesas de casa, lucro e saldo final.
+            </p>
+          </div>
+
+          <!-- Filtro de período -->
+          <div class="flex flex-wrap items-center gap-2 mb-1">
+            <span class="text-[11px] sm:text-xs text-slate-400 mr-1">Período:</span>
+            <button class="period-btn period-active" data-period="last7">Última Semana</button>
+            <button class="period-btn" data-period="month">Mês Atual</button>
+            <button class="period-btn" data-period="year">Ano Atual</button>
+            <button class="period-btn" data-period="prevMonth">Mês Anterior</button>
+          </div>
+
+          <!-- Cards principais -->
+          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            <div class="card">
+              <p class="card-label">Total de Ganhos</p>
+              <p id="totalEarningsDisplay" class="card-value">R$ 0,00</p>
+            </div>
+            <div class="card">
+              <p class="card-label">Despesas de Trabalho</p>
+              <p id="totalWorkExpensesDisplay" class="card-value">R$ 0,00</p>
+            </div>
+            <div class="card">
+              <p class="card-label">Despesas de Casa</p>
+              <p id="totalHouseExpensesDisplay" class="card-value">R$ 0,00</p>
+            </div>
+            <div class="card">
+              <p class="card-label">Lucro (Ganhos - Trabalho)</p>
+              <p id="profitDisplay" class="card-value text-emerald-400">R$ 0,00</p>
+            </div>
+            <div class="card">
+              <p class="card-label">Saldo Final (após Casa)</p>
+              <p id="finalBalanceDisplay" class="card-value">R$ 0,00</p>
+            </div>
+          </div>
+
+          <!-- Indicadores de eficiência -->
+          <div class="bg-slate-900/80 border border-slate-800 rounded-2xl p-4 sm:p-5">
+            <h3 class="section-title">📈 Indicadores de Eficiência</h3>
+            <p class="section-subtitle">
+              Métricas para entender se o seu trabalho está valendo a pena no período escolhido.
+            </p>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+              <div>
+                <p class="text-xs text-slate-400 mb-1">Ticket Médio por Dia</p>
+                <p id="avgTicketDisplay" class="text-lg font-semibold">R$ 0,00</p>
+                <p class="text-[10px] text-slate-500">Média dos ganhos diários.</p>
+              </div>
+              <div>
+                <p class="text-xs text-slate-400 mb-1">Custo Médio Diário (Trabalho)</p>
+                <p id="costPerDayDisplay" class="text-lg font-semibold">R$ 0,00</p>
+                <p class="text-[10px] text-slate-500">Combustível, pedágio, manutenção, etc.</p>
+              </div>
+              <div>
+                <p class="text-xs text-slate-400 mb-1">Margem de Lucro</p>
+                <p id="marginDisplay" class="text-lg font-semibold">0%</p>
+                <p class="text-[10px] text-slate-500">Lucro em relação ao total de ganhos.</p>
+              </div>
+              <div>
+                <p class="text-xs text-slate-400 mb-1">Meta Diária Atual</p>
+                <p id="currentDailyGoalDisplay" class="text-lg font-semibold text-emerald-400">
+                  R$ 0,00
+                </p>
+                <p class="text-[10px] text-slate-500">Calculada a partir das suas metas de mês/semana.</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Gráfico -->
+          <div class="bg-slate-900/80 border border-slate-800 rounded-2xl p-4 sm:p-5">
+            <div class="flex items-center justify-between mb-2">
+              <div>
+                <h3 class="section-title">📊 Evolução de Ganhos no Mês</h3>
+                <p class="section-subtitle">
+                  Mostra quanto você está faturando dia a dia no mês atual.
+                </p>
+              </div>
+            </div>
+            <canvas id="earningsChart" class="w-full h-48 sm:h-64"></canvas>
+          </div>
+        </section>
+
+        <!-- GANHOS -->
+        <section id="tab-earnings" class="tab-panel hidden space-y-4">
+          <div>
+            <h3 class="section-title">Registro de Ganhos Diários</h3>
+            <p class="section-subtitle">
+              Cadastre aqui quanto você faturou em cada dia e plataforma. Isso alimenta o Dashboard e as Metas.
+            </p>
+          </div>
+
+          <div class="flex justify-between items-center mb-1">
+            <p class="text-[11px] text-slate-500">
+              Use o botão abaixo para registrar o ganho de hoje ou de um dia anterior.
+            </p>
+            <button
+              id="openEarningsModalBtn"
+              class="px-3 py-1.5 rounded-lg text-xs sm:text-sm font-medium bg-emerald-500 text-slate-950 hover:bg-emerald-400"
+            >
+              + Adicionar Ganho
+            </button>
+          </div>
+
+          <ul id="earningsList" class="space-y-2 text-xs sm:text-sm">
+            <!-- items via JS -->
+          </ul>
+        </section>
+
+        <!-- METAS -->
+        <section id="tab-goals" class="tab-panel hidden space-y-4">
+          <div>
+            <h3 class="section-title">Definição de Metas</h3>
+            <p class="section-subtitle">
+              Configure metas mensais e semanais para ter uma meta diária automática e saber se está batendo o objetivo.
+            </p>
+          </div>
+
+          <div class="bg-slate-900/80 border border-slate-800 rounded-2xl p-4 sm:p-5 space-y-3">
+            <h4 class="text-sm font-semibold text-emerald-300 flex items-center gap-2">
+              🎯 Meta Mensal
+            </h4>
+            <p class="text-[11px] text-slate-500">
+              Informe quanto você quer faturar no mês. A partir disso calculamos uma meta diária.
+            </p>
+
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 items-end">
+              <div>
+                <label class="label">Mês</label>
+                <input id="monthlyGoalMonth" type="month" class="input" />
+              </div>
+              <div>
+                <label class="label">Valor da Meta (R$)</label>
+                <input
+                  id="monthlyGoalValue"
+                  type="number"
+                  min="0"
+                  step="0.01"
+                  class="input"
+                  placeholder="ex: 6000"
+                />
+              </div>
+              <div class="flex gap-2">
+                <button id="saveMonthlyGoalBtn" class="btn-primary flex-1">
+                  Salvar Meta Mensal
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <div class="bg-slate-900/80 border border-slate-800 rounded-2xl p-4 sm:p-5 space-y-3">
+            <h4 class="text-sm font-semibold text-emerald-300 flex items-center gap-2">
+              🎯 Meta Semanal
+            </h4>
+            <p class="text-[11px] text-slate-500">
+              Use metas semanais quando seu mês é irregular (ex.: semanas mais fortes ou mais fracas).
+            </p>
+
+            <div class="grid grid-cols-1 sm:grid-cols-4 gap-3 items-end">
+              <div>
+                <label class="label">Mês</label>
+                <input id="weeklyGoalMonth" type="month" class="input" />
+              </div>
+              <div>
+                <label class="label">Semanas</label>
+                <select id="weeklyGoalWeeks" class="input" multiple>
+                  <option value="1">Semana 1</option>
+                  <option value="2">Semana 2</option>
+                  <option value="3">Semana 3</option>
+                  <option value="4">Semana 4</option>
+                  <option value="5">Semana 5</option>
+                </select>
+                <p class="text-[10px] text-slate-500 mt-1">
+                  Use Ctrl (ou Command) para selecionar várias semanas.
+                </p>
+              </div>
+              <div>
+                <label class="label">Valor da Meta (R$)</label>
+                <input
+                  id="weeklyGoalValue"
+                  type="number"
+                  min="0"
+                  step="0.01"
+                  class="input"
+                  placeholder="ex: 1500"
+                />
+              </div>
+              <div class="flex gap-2">
+                <button id="saveWeeklyGoalBtn" class="btn-primary flex-1">
+                  Salvar Meta Semanal
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <div class="bg-slate-900/80 border border-slate-800 rounded-2xl p-4 sm:p-5 flex flex-col sm:flex-row items-start sm:items-center gap-3">
+            <div class="flex-1">
+              <p class="text-xs text-slate-400 mb-1">Meta Diária Calculada</p>
+              <p id="goalsCurrentDailyDisplay" class="text-xl font-semibold text-emerald-400">
+                R$ 0,00
+              </p>
+              <p class="text-[10px] text-slate-500 mt-1">
+                A meta diária leva em conta sua meta semanal (se houver) ou mensal do mês atual.
+              </p>
+            </div>
+            <button
+              id="clearGoalsBtn"
+              class="px-3 py-1.5 rounded-lg border border-red-500/70 text-xs sm:text-sm text-red-300 hover:bg-red-500/10"
+            >
+              Limpar todas as metas
+            </button>
+          </div>
+        </section>
+
+        <!-- TRABALHO -->
+        <section id="tab-work" class="tab-panel hidden space-y-4">
+          <div>
+            <h3 class="section-title">Despesas de Trabalho</h3>
+            <p class="section-subtitle">
+              Tudo que você gasta para rodar: combustível, pedágio, estacionamento, lavagem, manutenção, etc.
+            </p>
+          </div>
+
+          <div class="flex justify-between items-center mb-1">
+            <p class="text-[11px] text-slate-500">
+              Registre aqui os custos do dia a dia do carro. Eles impactam diretamente no seu lucro.
+            </p>
+            <button
+              id="openWorkExpenseModalBtn"
+              class="px-3 py-1.5 rounded-lg text-xs sm:text-sm font-medium bg-emerald-500 text-slate-950 hover:bg-emerald-400"
+            >
+              + Adicionar Despesa
+            </button>
+          </div>
+
+          <ul id="workExpensesList" class="space-y-2 text-xs sm:text-sm">
+            <!-- via JS -->
+          </ul>
+        </section>
+
+        <!-- CASA -->
+        <section id="tab-home" class="tab-panel hidden space-y-4">
+          <div>
+            <h3 class="section-title">Despesas de Casa</h3>
+            <p class="section-subtitle">
+              Aluguel, contas fixas e despesas do lar. Aqui você vê quanto do lucro realmente fica para a sua casa.
+            </p>
+          </div>
+
+          <div class="flex justify-between items-center mb-1">
+            <p class="text-[11px] text-slate-500">
+              Cadastre somente o que impacta diretamente no seu orçamento mensal.
+            </p>
+            <button
+              id="openHouseExpenseModalBtn"
+              class="px-3 py-1.5 rounded-lg text-xs sm:text-sm font-medium bg-emerald-500 text-slate-950 hover:bg-emerald-400"
+            >
+              + Adicionar Despesa
+            </button>
+          </div>
+
+          <ul id="houseExpensesList" class="space-y-2 text-xs sm:text-sm">
+            <!-- via JS -->
+          </ul>
+        </section>
+      </section>
+    </div>
+  </main>
+
+  <!-- MODAIS (mesmos campos, só layout melhorado) -->
+
+  <!-- MODAL GANHOS -->
+  <div id="earningsModal" class="fixed inset-0 bg-black/60 flex items-center justify-center z-40 hidden">
+    <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5 w-full max-w-md mx-4">
+      <h3 class="text-sm sm:text-base font-semibold text-emerald-300 mb-1">
+        💰 Adicionar Ganho do Dia
+      </h3>
+      <p class="text-[11px] text-slate-500 mb-3">
+        Registre aqui o valor líquido do dia em cada plataforma.
+      </p>
+
+      <label class="label">Data</label>
+      <input id="earningsDate" type="date" class="input mb-2" />
+
+      <label class="label">Plataforma</label>
+      <select id="earningsPlatform" class="input mb-2">
+        <option value="Uber">Uber</option>
+        <option value="99">99</option>
+        <option value="InDriver">InDriver</option>
+        <option value="Outros">Outros</option>
+      </select>
+
+      <label class="label">Valor do Dia (R$)</label>
+      <input id="earningsAmount" type="number" min="0" step="0.01" class="input mb-2" />
+
+      <label class="label">Observações (opcional)</label>
+      <textarea id="earningsNotes" rows="2" class="input mb-4" placeholder="Ex.: dia fraco, muita chuva, promoção ativa, etc."></textarea>
+
+      <div class="flex justify-end gap-2">
+        <button id="cancelEarningsBtn" class="btn-secondary">Cancelar</button>
+        <button id="saveEarningsBtn" class="btn-primary">Salvar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL DESPESA TRABALHO -->
+  <div id="workExpenseModal" class="fixed inset-0 bg-black/60 flex items-center justify-center z-40 hidden">
+    <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5 w-full max-w-md mx-4">
+      <h3 class="text-sm sm:text-base font-semibold text-emerald-300 mb-1">
+        🚗 Adicionar Despesa de Trabalho
+      </h3>
+      <p class="text-[11px] text-slate-500 mb-3">
+        Custos diretamente ligados ao carro e ao trabalho nas plataformas.
+      </p>
+
+      <label class="label">Data</label>
+      <input id="workExpenseDate" type="date" class="input mb-2" />
+
+      <label class="label">Categoria</label>
+      <select id="workExpenseCategory" class="input mb-2">
+        <option value="Combustível">Combustível</option>
+        <option value="Manutenção">Manutenção</option>
+        <option value="Lavagem">Lavagem</option>
+        <option value="Pedágio">Pedágio</option>
+        <option value="Estacionamento">Estacionamento</option>
+        <option value="Outros">Outros</option>
+      </select>
+
+      <label class="label">Valor (R$)</label>
+      <input id="workExpenseAmount" type="number" min="0" step="0.01" class="input mb-2" />
+
+      <label class="label">Descrição (opcional)</label>
+      <textarea id="workExpenseDescription" rows="2" class="input mb-4" placeholder="Ex.: troca de óleo, lavagem completa, etc."></textarea>
+
+      <div class="flex justify-end gap-2">
+        <button id="cancelWorkExpenseBtn" class="btn-secondary">Cancelar</button>
+        <button id="saveWorkExpenseBtn" class="btn-primary">Salvar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL DESPESA CASA -->
+  <div id="houseExpenseModal" class="fixed inset-0 bg-black/60 flex items-center justify-center z-40 hidden">
+    <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5 w-full max-w-md mx-4">
+      <h3 class="text-sm sm:text-base font-semibold text-emerald-300 mb-1">
+        🏠 Adicionar Despesa de Casa
+      </h3>
+      <p class="text-[11px] text-slate-500 mb-3">
+        Contas e despesas que impactam o seu orçamento familiar.
+      </p>
+
+      <label class="label">Data</label>
+      <input id="houseExpenseDate" type="date" class="input mb-2" />
+
+      <label class="label">Categoria</label>
+      <select id="houseExpenseCategory" class="input mb-2">
+        <option value="Aluguel">Aluguel</option>
+        <option value="Água">Água</option>
+        <option value="Luz">Luz</option>
+        <option value="Internet">Internet</option>
+        <option value="Mercado">Mercado</option>
+        <option value="Outros">Outros</option>
+      </select>
+
+      <label class="label">Valor (R$)</label>
+      <input id="houseExpenseAmount" type="number" min="0" step="0.01" class="input mb-2" />
+
+      <label class="label">Descrição (opcional)</label>
+      <textarea id="houseExpenseDescription" rows="2" class="input mb-4" placeholder="Ex.: mercado do mês, conta extra, etc."></textarea>
+
+      <div class="flex justify-end gap-2">
+        <button id="cancelHouseExpenseBtn" class="btn-secondary">Cancelar</button>
+        <button id="saveHouseExpenseBtn" class="btn-primary">Salvar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- FIREBASE + LÓGICA (igual à sua, com helpers de segurança) -->
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-app.js";
     import {
@@ -501,11 +575,10 @@
       query,
       where,
       orderBy,
-      serverTimestamp,
-      deleteDoc
+      serverTimestamp
     } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore.js";
 
-    // 🔐 CONFIG FIREBASE - PREENCHA COM OS DADOS DO SEU PROJETO
+    // CONFIG FIREBASE
     const firebaseConfig = {
       apiKey: "AIzaSyDWMlDtQ1dhvE3mLYhRakJ1oM8TJyJd6s8",
       authDomain: "gestao-motorista-4155f.firebaseapp.com",
@@ -519,7 +592,6 @@
     const auth = getAuth(app);
     const db = getFirestore(app);
 
-    // ---------- HELPERS ----------
     const safeNumber = (value) => {
       const n = Number(value);
       return isNaN(n) ? 0 : n;
@@ -537,11 +609,11 @@
 
     const todayISO = () => new Date().toISOString().split("T")[0];
 
-    // ---------- ELEMENTOS ----------
     const authSection = document.getElementById("authSection");
     const appSection = document.getElementById("appSection");
     const logoutBtn = document.getElementById("logoutBtn");
     const logoutBtnMobile = document.getElementById("logoutBtnMobile");
+    const userEmailLabel = document.getElementById("userEmailLabel");
 
     const emailInput = document.getElementById("emailInput");
     const passwordInput = document.getElementById("passwordInput");
@@ -557,7 +629,6 @@
       home: document.getElementById("tab-home")
     };
 
-    // Dashboard displays
     const totalEarningsDisplay = document.getElementById("totalEarningsDisplay");
     const totalWorkExpensesDisplay = document.getElementById("totalWorkExpensesDisplay");
     const totalHouseExpensesDisplay = document.getElementById("totalHouseExpensesDisplay");
@@ -568,7 +639,6 @@
     const marginDisplay = document.getElementById("marginDisplay");
     const currentDailyGoalDisplay = document.getElementById("currentDailyGoalDisplay");
 
-    // Metas
     const monthlyGoalMonth = document.getElementById("monthlyGoalMonth");
     const monthlyGoalValue = document.getElementById("monthlyGoalValue");
     const weeklyGoalMonth = document.getElementById("weeklyGoalMonth");
@@ -576,15 +646,12 @@
     const weeklyGoalValue = document.getElementById("weeklyGoalValue");
     const goalsCurrentDailyDisplay = document.getElementById("goalsCurrentDailyDisplay");
 
-    // Lists
     const earningsList = document.getElementById("earningsList");
     const workExpensesList = document.getElementById("workExpensesList");
     const houseExpensesList = document.getElementById("houseExpensesList");
 
-    // Period buttons
     const periodButtons = document.querySelectorAll(".period-btn");
 
-    // Modals
     const earningsModal = document.getElementById("earningsModal");
     const earningsDate = document.getElementById("earningsDate");
     const earningsPlatform = document.getElementById("earningsPlatform");
@@ -616,7 +683,7 @@
     const saveWeeklyGoalBtn = document.getElementById("saveWeeklyGoalBtn");
     const clearGoalsBtn = document.getElementById("clearGoalsBtn");
 
-    // ---------- AUTENTICAÇÃO ----------
+    // Auth
     loginBtn.addEventListener("click", async () => {
       const email = emailInput.value.trim();
       const password = passwordInput.value.trim();
@@ -663,6 +730,7 @@
       if (user) {
         authSection.classList.add("hidden");
         appSection.classList.remove("hidden");
+        userEmailLabel.textContent = user.email || "motorista";
         initForUser(user);
       } else {
         authSection.classList.remove("hidden");
@@ -670,7 +738,7 @@
       }
     });
 
-    // ---------- TABS ----------
+    // Tabs
     tabButtons.forEach((btn) => {
       btn.addEventListener("click", () => {
         const tab = btn.getAttribute("data-tab");
@@ -685,7 +753,7 @@
       });
     });
 
-    // ---------- MODAIS ----------
+    // Modais
     const openModal = (el) => el.classList.remove("hidden");
     const closeModal = (el) => el.classList.add("hidden");
 
@@ -713,7 +781,7 @@
     });
     cancelHouseExpenseBtn?.addEventListener("click", () => closeModal(houseExpenseModal));
 
-    // ---------- SALVAR GANHOS ----------
+    // Salvar Ganhos
     saveEarningsBtn?.addEventListener("click", async () => {
       const user = auth.currentUser;
       if (!user) {
@@ -747,7 +815,7 @@
       }
     });
 
-    // ---------- SALVAR DESPESAS ----------
+    // Salvar Despesas
     saveWorkExpenseBtn?.addEventListener("click", async () => {
       const user = auth.currentUser;
       if (!user) return;
@@ -809,13 +877,13 @@
       }
     });
 
-    // ---------- METAS ----------
+    // Metas
     const goalsDocRef = (uid) => doc(db, "userGoals", uid);
 
     saveMonthlyGoalBtn?.addEventListener("click", async () => {
       const user = auth.currentUser;
       if (!user) return;
-      const month = monthlyGoalMonth.value; // yyyy-mm
+      const month = monthlyGoalMonth.value;
       const value = safeNumber(monthlyGoalValue.value);
 
       if (!month || value <= 0) {
@@ -882,7 +950,7 @@
       }
     });
 
-    // ---------- DASHBOARD & CARREGAMENTO ----------
+    // Dashboard
     let earningsChart;
 
     function setupChart(labels, values) {
@@ -964,7 +1032,6 @@
       const { start, end } = getPeriodRange(period);
 
       try {
-        // Ganhos
         let earningsTotal = 0;
         let earningsCount = 0;
         const earningsByDay = {};
@@ -985,7 +1052,6 @@
           earningsByDay[date] = (earningsByDay[date] || 0) + amount;
         });
 
-        // Despesas trabalho
         let workTotal = 0;
         const workQ = query(
           collection(db, "expenses"),
@@ -999,7 +1065,6 @@
           workTotal += safeNumber(docSnap.data().amount);
         });
 
-        // Despesas casa
         let houseTotal = 0;
         const houseQ = query(
           collection(db, "houseExpenses"),
@@ -1030,11 +1095,9 @@
         costPerDayDisplay.textContent = formatCurrency(costPerDay);
         marginDisplay.textContent = formatPercent(margin);
 
-        // gráfico mês completo (sempre do mês atual)
         const now = new Date();
         const year = now.getFullYear();
-        const month = now.getMonth(); // 0-11
-        const firstDay = new Date(year, month, 1);
+        const month = now.getMonth();
         const lastDay = new Date(year, month + 1, 0).getDate();
 
         const labels = [];
@@ -1047,12 +1110,11 @@
         }
         setupChart(labels, values);
 
-        // meta diária atual
         await loadGoals(user, { onlyUpdateDailyGoal: true });
       } catch (error) {
         console.error("Erro ao carregar dashboard:", error);
         if (error.code === "failed-precondition") {
-          console.warn("Crie o índice sugerido pelo Firestore para dailyEarnings / expenses.");
+          console.warn("Crie o índice sugerido pelo Firestore (dailyEarnings / expenses).");
         }
       }
     }
@@ -1097,7 +1159,6 @@
       workExpensesList.innerHTML = "";
       houseExpensesList.innerHTML = "";
 
-      // trabalho
       try {
         const qWork = query(
           collection(db, "expenses"),
@@ -1131,7 +1192,6 @@
         console.error("Erro ao carregar despesas de trabalho:", error);
       }
 
-      // casa
       try {
         const qHouse = query(
           collection(db, "houseExpenses"),
@@ -1178,8 +1238,7 @@
         weeklyGoals = data.weeklyGoals || {};
       }
 
-      // Atualiza campos de meta (tela Metas)
-      const currentMonthStr = new Date().toISOString().slice(0, 7); // yyyy-mm
+      const currentMonthStr = new Date().toISOString().slice(0, 7);
 
       if (!options.onlyUpdateDailyGoal) {
         monthlyGoalMonth.value = currentMonthStr;
@@ -1188,7 +1247,6 @@
         const monthValue = monthlyGoals[currentMonthStr] || 0;
         monthlyGoalValue.value = monthValue > 0 ? monthValue : "";
 
-        // pega qualquer weeklyGoal do mês atual (se houver)
         const weeklyEntry = Object.entries(weeklyGoals).find(([key]) =>
           key.startsWith(currentMonthStr + "-")
         );
@@ -1200,10 +1258,7 @@
         }
       }
 
-      // calcula meta diária
       let dailyGoal = 0;
-
-      // prioridade para meta semanal se existir
       const weeklyForCurrent = Object.entries(weeklyGoals).find(([key]) =>
         key.startsWith(currentMonthStr + "-")
       );
