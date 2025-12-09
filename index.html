@@ -54,6 +54,7 @@
       const [dailyEarnings, setDailyEarnings] = useState([]);
       const [expenses, setExpenses] = useState([]);
       const [houseExpenses, setHouseExpenses] = useState([]);
+      const [customPlatforms, setCustomPlatforms] = useState([]);
 
       const [showEarningModal, setShowEarningModal] = useState(false);
       const [showExpenseModal, setShowExpenseModal] = useState(false);
@@ -68,8 +69,12 @@
 
       const today = new Date().toISOString().split('T')[0];
 
+      const defaultPlatforms = ['Uber', '99', 'InDrive'];
+
       const [earningForm, setEarningForm] = useState({
         date: today,
+        platform: 'Uber',
+        customPlatform: '',
         value: ''
       });
 
@@ -140,10 +145,23 @@
           setHouseExpenses(data);
         });
 
+        const platformsQuery = db
+          .collection('customPlatforms')
+          .where('userId', '==', user.uid);
+
+        const unsubPlatforms = platformsQuery.onSnapshot((snapshot) => {
+          const data = snapshot.docs.map(doc => ({
+            id: doc.id,
+            ...doc.data()
+          }));
+          setCustomPlatforms(data);
+        });
+
         return () => {
           unsubEarnings();
           unsubExpenses();
           unsubHouse();
+          unsubPlatforms();
         };
       }, [user]);
 
@@ -178,25 +196,39 @@
       const addEarning = async () => {
         if (!earningForm.value || !user) return;
         
-        // Verificar se já existe ganho para essa data
-        const existing = dailyEarnings.find(e => e.date === earningForm.date);
-        
-        if (existing) {
-          // Atualizar o valor existente
-          await db.collection('dailyEarnings').doc(existing.id).update({
-            value: parseFloat(earningForm.value) || 0
-          });
-        } else {
-          // Criar novo
-          await db.collection('dailyEarnings').add({
-            ...earningForm,
-            value: parseFloat(earningForm.value) || 0,
-            userId: user.uid,
-            createdAt: new Date().toISOString()
-          });
+        const finalPlatform = earningForm.platform === 'Outra' 
+          ? earningForm.customPlatform.trim() 
+          : earningForm.platform;
+
+        if (!finalPlatform) {
+          alert('Por favor, informe a plataforma');
+          return;
+        }
+
+        // Se for uma plataforma customizada nova, salvar na lista
+        if (earningForm.platform === 'Outra' && earningForm.customPlatform.trim()) {
+          const platformExists = customPlatforms.some(p => 
+            p.name.toLowerCase() === earningForm.customPlatform.trim().toLowerCase()
+          );
+          
+          if (!platformExists) {
+            await db.collection('customPlatforms').add({
+              name: earningForm.customPlatform.trim(),
+              userId: user.uid,
+              createdAt: new Date().toISOString()
+            });
+          }
         }
         
-        setEarningForm({ date: today, value: '' });
+        await db.collection('dailyEarnings').add({
+          date: earningForm.date,
+          platform: finalPlatform,
+          value: parseFloat(earningForm.value) || 0,
+          userId: user.uid,
+          createdAt: new Date().toISOString()
+        });
+        
+        setEarningForm({ date: today, platform: 'Uber', customPlatform: '', value: '' });
         setShowEarningModal(false);
       };
 
@@ -234,6 +266,10 @@
 
       const deleteHouseExpense = async (id) => {
         await db.collection('houseExpenses').doc(id).delete();
+      };
+
+      const deleteCustomPlatform = async (id) => {
+        await db.collection('customPlatforms').doc(id).delete();
       };
 
       // Filtrar dados por período
@@ -335,6 +371,16 @@
       const diasRestantes = diasRestantesMes();
       const projecaoReceita = currentMonthEarnings + (avgReceitaDiaria * diasRestantes);
       const projecaoLucro = currentMonthProfit + (avgLucroDiario * diasRestantes);
+
+      // Ganhos por plataforma
+      const earningsByPlatform = filteredEarnings.reduce((acc, earning) => {
+        const platform = earning.platform || 'Não especificado';
+        if (!acc[platform]) {
+          acc[platform] = 0;
+        }
+        acc[platform] += earning.value;
+        return acc;
+      }, {});
 
       // Renderizar gráfico de linha
       useEffect(() => {
@@ -477,10 +523,10 @@
         const doc = new jsPDF();
 
         doc.setFontSize(18);
-        doc.text('Relatório Financeiro', 20, 20);
+        doc.text('Relatorio Financeiro', 20, 20);
         
         doc.setFontSize(12);
-        doc.text(`Período: ${filterPeriod === 'week' ? 'Última Semana' : filterPeriod === 'month' ? 'Mês Atual' : filterPeriod === 'year' ? 'Ano Atual' : 'Todos'}`, 20, 30);
+        doc.text(`Periodo: ${filterPeriod === 'week' ? 'Ultima Semana' : filterPeriod === 'month' ? 'Mes Atual' : filterPeriod === 'year' ? 'Ano Atual' : 'Todos'}`, 20, 30);
         doc.text(`Data: ${new Date().toLocaleDateString('pt-BR')}`, 20, 37);
 
         doc.setFontSize(14);
@@ -497,24 +543,35 @@
         doc.text('Indicadores', 20, 105);
         
         doc.setFontSize(11);
-        doc.text(`Ticket Médio: R$ ${ticketMedio.toFixed(2)}`, 20, 115);
+        doc.text(`Ticket Medio: R$ ${ticketMedio.toFixed(2)}`, 20, 115);
         doc.text(`Custo por Dia: R$ ${custoPorDia.toFixed(2)}`, 20, 122);
         doc.text(`Margem de Lucro: ${margemLucro.toFixed(1)}%`, 20, 129);
 
         doc.setFontSize(14);
-        doc.text('Projeções do Mês', 20, 145);
+        doc.text('Projecoes do Mes', 20, 145);
         
         doc.setFontSize(11);
         doc.text(`Receita Projetada: R$ ${projecaoReceita.toFixed(2)}`, 20, 155);
         doc.text(`Lucro Projetado: R$ ${projecaoLucro.toFixed(2)}`, 20, 162);
 
         doc.setFontSize(14);
-        doc.text('Comparação Mensal', 20, 178);
+        doc.text('Comparacao Mensal', 20, 178);
         
         doc.setFontSize(11);
-        doc.text(`Receita Mês Atual: R$ ${currentMonthEarnings.toFixed(2)}`, 20, 188);
-        doc.text(`Receita Mês Anterior: R$ ${lastMonthEarnings.toFixed(2)}`, 20, 195);
-        doc.text(`Variação: ${earningsDiffPercent >= 0 ? '+' : ''}${earningsDiffPercent.toFixed(1)}%`, 20, 202);
+        doc.text(`Receita Mes Atual: R$ ${currentMonthEarnings.toFixed(2)}`, 20, 188);
+        doc.text(`Receita Mes Anterior: R$ ${lastMonthEarnings.toFixed(2)}`, 20, 195);
+        doc.text(`Variacao: ${earningsDiffPercent >= 0 ? '+' : ''}${earningsDiffPercent.toFixed(1)}%`, 20, 202);
+
+        doc.addPage();
+        doc.setFontSize(14);
+        doc.text('Ganhos por Plataforma', 20, 20);
+        
+        doc.setFontSize(11);
+        let yPos = 30;
+        Object.entries(earningsByPlatform).forEach(([platform, value]) => {
+          doc.text(`${platform}: R$ ${value.toFixed(2)}`, 20, yPos);
+          yPos += 7;
+        });
 
         doc.save('relatorio-financeiro.pdf');
       };
@@ -621,6 +678,8 @@
 
       const mobileCardClass = "bg-white rounded-lg shadow p-4 mb-3";
 
+      const allPlatforms = [...defaultPlatforms, ...customPlatforms.map(p => p.name), 'Outra'];
+
       return (
         <div className="min-h-screen flex flex-col bg-slate-50">
           <header className="bg-gradient-to-r from-slate-900 via-slate-800 to-sky-700 text-white p-4 shadow-lg">
@@ -708,6 +767,26 @@
                   </button>
                 </div>
 
+                {/* Ganhos por plataforma */}
+                {Object.keys(earningsByPlatform).length > 0 && (
+                  <div className="bg-white rounded-xl shadow-lg p-4 mb-4">
+                    <h3 className="text-sm font-bold text-slate-700 mb-3 flex items-center">
+                      <span className="mr-2">🚗</span>
+                      Ganhos por Plataforma
+                    </h3>
+                    <div className="space-y-2">
+                      {Object.entries(earningsByPlatform)
+                        .sort((a, b) => b[1] - a[1])
+                        .map(([platform, value]) => (
+                          <div key={platform} className="flex justify-between items-center bg-slate-50 rounded-lg px-3 py-2">
+                            <span className="font-medium text-slate-700">{platform}</span>
+                            <span className="font-bold text-emerald-600">R$ {value.toFixed(2)}</span>
+                          </div>
+                        ))}
+                    </div>
+                  </div>
+                )}
+
                 {/* Comparação mês a mês */}
                 <div className="bg-gradient-to-br from-indigo-600 to-indigo-700 text-white rounded-xl p-4 mb-4 shadow-lg">
                   <h3 className="text-sm font-bold mb-3 flex items-center">
@@ -753,7 +832,7 @@
                   <div className="bg-gradient-to-br from-emerald-500 to-emerald-600 text-white rounded-xl p-4 shadow-lg">
                     <div className="text-xs opacity-90 font-medium">Receita</div>
                     <div className="text-2xl font-bold mt-1">R$ {totalEarnings.toFixed(2)}</div>
-                    <div className="text-xs opacity-75 mt-1">{totalDays} dias</div>
+                    <div className="text-xs opacity-75 mt-1">{totalDays} registros</div>
                   </div>
                   <div className="bg-gradient-to-br from-amber-500 to-amber-600 text-white rounded-xl p-4 shadow-lg">
                     <div className="text-xs opacity-90 font-medium">Despesas Trabalho</div>
@@ -862,7 +941,7 @@
                         <div key={idx} className="flex justify-between items-center bg-slate-50 rounded-lg px-3 py-2.5">
                           <div>
                             <span className="font-semibold text-slate-700">
-                              {item.type === 'earning' && '💵 Ganho'}
+                              {item.type === 'earning' && `💵 ${item.platform || 'Ganho'}`}
                               {item.type === 'expense' && '⛽ Trabalho'}
                               {item.type === 'house' && '🏠 Casa'}
                             </span>
@@ -886,7 +965,7 @@
             {activeTab === 'ganhos' && (
               <div>
                 <div className="flex justify-between items-center mb-3">
-                  <h2 className="text-lg font-bold text-slate-700">💵 Ganhos Diários</h2>
+                  <h2 className="text-lg font-bold text-slate-700">💵 Ganhos</h2>
                   <button
                     onClick={() => setShowEarningModal(true)}
                     className="bg-emerald-600 hover:bg-emerald-700 text-white text-sm px-4 py-2 rounded-lg shadow transition"
@@ -894,6 +973,26 @@
                     + Ganho
                   </button>
                 </div>
+
+                {/* Gerenciar plataformas customizadas */}
+                {customPlatforms.length > 0 && (
+                  <div className="bg-white rounded-xl shadow-lg p-4 mb-4">
+                    <h3 className="text-sm font-bold text-slate-700 mb-3">Minhas Plataformas</h3>
+                    <div className="space-y-2">
+                      {customPlatforms.map(platform => (
+                        <div key={platform.id} className="flex justify-between items-center bg-slate-50 rounded-lg px-3 py-2">
+                          <span className="text-sm font-medium text-slate-700">{platform.name}</span>
+                          <button
+                            onClick={() => deleteCustomPlatform(platform.id)}
+                            className="text-xs text-red-600 hover:text-red-700 font-medium"
+                          >
+                            Excluir
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
 
                 {filteredEarnings.length === 0 && (
                   <p className="text-center text-slate-400 text-sm mt-6">
@@ -904,17 +1003,19 @@
                 {filteredEarnings.map(earning => (
                   <div key={earning.id} className={mobileCardClass}>
                     <div className="flex justify-between items-center mb-1">
-                      <span className="font-semibold text-slate-700">Ganho do dia</span>
-                      <span className="text-xs text-slate-400">{earning.date}</span>
-                    </div>
-                    <div className="flex justify-between items-center mt-2">
-                      <span className="font-bold text-emerald-600 text-lg">R$ {earning.value.toFixed(2)}</span>
+                      <div>
+                        <span className="font-semibold text-slate-700">{earning.platform || 'Ganho'}</span>
+                        <span className="text-xs text-slate-400 ml-2">{earning.date}</span>
+                      </div>
                       <button
                         onClick={() => deleteEarning(earning.id)}
                         className="text-xs text-red-600 hover:text-red-700 font-medium"
                       >
                         Excluir
                       </button>
+                    </div>
+                    <div className="mt-2">
+                      <span className="font-bold text-emerald-600 text-lg">R$ {earning.value.toFixed(2)}</span>
                     </div>
                   </div>
                 ))}
@@ -1012,7 +1113,7 @@
           {showEarningModal && (
             <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-30">
               <div className="bg-white rounded-xl p-5 w-full max-w-sm shadow-2xl">
-                <h3 className="text-lg font-bold mb-4 text-slate-700">💵 Ganho do Dia</h3>
+                <h3 className="text-lg font-bold mb-4 text-slate-700">💵 Novo Ganho</h3>
                 <div className="space-y-3 text-sm">
                   <div>
                     <label className="block mb-1 font-medium text-slate-600">Data</label>
@@ -1024,7 +1125,31 @@
                     />
                   </div>
                   <div>
-                    <label className="block mb-1 font-medium text-slate-600">Valor Total do Dia (R$)</label>
+                    <label className="block mb-1 font-medium text-slate-600">Plataforma</label>
+                    <select
+                      value={earningForm.platform}
+                      onChange={e => setEarningForm({...earningForm, platform: e.target.value})}
+                      className="w-full border border-slate-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+                    >
+                      {allPlatforms.map(platform => (
+                        <option key={platform} value={platform}>{platform}</option>
+                      ))}
+                    </select>
+                  </div>
+                  {earningForm.platform === 'Outra' && (
+                    <div>
+                      <label className="block mb-1 font-medium text-slate-600">Nome da Plataforma</label>
+                      <input
+                        type="text"
+                        value={earningForm.customPlatform}
+                        onChange={e => setEarningForm({...earningForm, customPlatform: e.target.value})}
+                        className="w-full border border-slate-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+                        placeholder="Ex: Cabify, Bolt, etc."
+                      />
+                    </div>
+                  )}
+                  <div>
+                    <label className="block mb-1 font-medium text-slate-600">Valor (R$)</label>
                     <input
                       type="number"
                       step="0.01"
@@ -1034,9 +1159,6 @@
                       placeholder="0,00"
                     />
                   </div>
-                  <p className="text-xs text-slate-500">
-                    💡 Se já existe um ganho para esta data, ele será atualizado.
-                  </p>
                 </div>
                 <div className="flex gap-2 mt-5">
                   <button
@@ -1109,104 +1231,4 @@
                     />
                   </div>
                 </div>
-                <div className="flex gap-2 mt-5">
-                  <button
-                    onClick={() => setShowExpenseModal(false)}
-                    className="flex-1 bg-slate-200 hover:bg-slate-300 text-slate-700 py-2.5 rounded-lg font-medium transition"
-                  >
-                    Cancelar
-                  </button>
-                  <button
-                    onClick={addExpense}
-                    className="flex-1 bg-amber-600 hover:bg-amber-700 text-white py-2.5 rounded-lg font-medium transition"
-                  >
-                    Salvar
-                  </button>
-                </div>
-              </div>
-            </div>
-          )}
-
-          {/* Modal: Nova Despesa Casa */}
-          {showHouseModal && (
-            <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-30">
-              <div className="bg-white rounded-xl p-5 w-full max-w-sm shadow-2xl">
-                <h3 className="text-lg font-bold mb-4 text-slate-700">🏠 Nova Despesa Casa</h3>
-                <div className="space-y-3 text-sm">
-                  <div>
-                    <label className="block mb-1 font-medium text-slate-600">Data</label>
-                    <input
-                      type="date"
-                      value={houseForm.date}
-                      onChange={e => setHouseForm({...houseForm, date: e.target.value})}
-                      className="w-full border border-slate-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-rose-500 focus:border-rose-500"
-                    />
-                  </div>
-                  <div>
-                    <label className="block mb-1 font-medium text-slate-600">Categoria</label>
-                    <select
-                      value={houseForm.category}
-                      onChange={e => setHouseForm({...houseForm, category: e.target.value})}
-                      className="w-full border border-slate-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-rose-500 focus:border-rose-500"
-                    >
-                      <option>Alimentação</option>
-                      <option>Aluguel</option>
-                      <option>Água</option>
-                      <option>Luz</option>
-                      <option>Internet</option>
-                      <option>Gás</option>
-                      <option>Telefone</option>
-                      <option>Educação</option>
-                      <option>Saúde</option>
-                      <option>Transporte</option>
-                      <option>Lazer</option>
-                      <option>Outro</option>
-                    </select>
-                  </div>
-                  <div>
-                    <label className="block mb-1 font-medium text-slate-600">Descrição</label>
-                    <input
-                      type="text"
-                      value={houseForm.description}
-                      onChange={e => setHouseForm({...houseForm, description: e.target.value})}
-                      className="w-full border border-slate-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-rose-500 focus:border-rose-500"
-                      placeholder="Detalhes da despesa"
-                    />
-                  </div>
-                  <div>
-                    <label className="block mb-1 font-medium text-slate-600">Valor (R$)</label>
-                    <input
-                      type="number"
-                      step="0.01"
-                      value={houseForm.value}
-                      onChange={e => setHouseForm({...houseForm, value: e.target.value})}
-                      className="w-full border border-slate-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-rose-500 focus:border-rose-500"
-                      placeholder="0,00"
-                    />
-                  </div>
-                </div>
-                <div className="flex gap-2 mt-5">
-                  <button
-                    onClick={() => setShowHouseModal(false)}
-                    className="flex-1 bg-slate-200 hover:bg-slate-300 text-slate-700 py-2.5 rounded-lg font-medium transition"
-                  >
-                    Cancelar
-                  </button>
-                  <button
-                    onClick={addHouseExpense}
-                    className="flex-1 bg-rose-600 hover:bg-rose-700 text-white py-2.5 rounded-lg font-medium transition"
-                  >
-                    Salvar
-                  </button>
-                </div>
-              </div>
-            </div>
-          )}
-        </div>
-      );
-    }
-
-    ReactDOM.render(<App />, document.getElementById('root'));
-  </script>
-</body>
-</html>
+                <div className="flex gap-2
