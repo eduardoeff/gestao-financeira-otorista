@@ -9,11 +9,7 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 </head>
 <body class="bg-gray-100">
-  <div id="root" class="min-h-screen flex items-center justify-center">
-    <div class="text-center text-gray-600">
-      Carregando aplicação...
-    </div>
-  </div>
+  <div id="root"></div>
 
   <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
@@ -103,65 +99,64 @@
       useEffect(() => {
         if (!user) return;
 
+        const unsubscribers = [];
+
         const earningsQuery = db
           .collection('dailyEarnings')
           .where('userId', '==', user.uid)
           .orderBy('date', 'desc');
 
-        const unsubEarnings = earningsQuery.onSnapshot((snapshot) => {
+        unsubscribers.push(earningsQuery.onSnapshot((snapshot) => {
           const data = snapshot.docs.map(doc => ({
             id: doc.id,
             ...doc.data(),
             value: parseFloat(doc.data().value) || 0
           }));
           setDailyEarnings(data);
-        });
+        }));
 
         const expensesQuery = db
           .collection('expenses')
           .where('userId', '==', user.uid)
           .orderBy('date', 'desc');
 
-        const unsubExpenses = expensesQuery.onSnapshot((snapshot) => {
+        unsubscribers.push(expensesQuery.onSnapshot((snapshot) => {
           const data = snapshot.docs.map(doc => ({
             id: doc.id,
             ...doc.data(),
             value: parseFloat(doc.data().value) || 0
           }));
           setExpenses(data);
-        });
+        }));
 
         const houseQuery = db
           .collection('houseExpenses')
           .where('userId', '==', user.uid)
           .orderBy('date', 'desc');
 
-        const unsubHouse = houseQuery.onSnapshot((snapshot) => {
+        unsubscribers.push(houseQuery.onSnapshot((snapshot) => {
           const data = snapshot.docs.map(doc => ({
             id: doc.id,
             ...doc.data(),
             value: parseFloat(doc.data().value) || 0
           }));
           setHouseExpenses(data);
-        });
+        }));
 
         const platformsQuery = db
           .collection('customPlatforms')
           .where('userId', '==', user.uid);
 
-        const unsubPlatforms = platformsQuery.onSnapshot((snapshot) => {
+        unsubscribers.push(platformsQuery.onSnapshot((snapshot) => {
           const data = snapshot.docs.map(doc => ({
             id: doc.id,
             ...doc.data()
           }));
           setCustomPlatforms(data);
-        });
+        }));
 
         return () => {
-          unsubEarnings();
-          unsubExpenses();
-          unsubHouse();
-          unsubPlatforms();
+          unsubscribers.forEach(unsub => unsub());
         };
       }, [user]);
 
@@ -195,7 +190,7 @@
 
       const addEarning = async () => {
         if (!earningForm.value || !user) return;
-        
+
         const finalPlatform = earningForm.platform === 'Outra' 
           ? earningForm.customPlatform.trim() 
           : earningForm.platform;
@@ -209,7 +204,7 @@
           const platformExists = customPlatforms.some(p => 
             p.name.toLowerCase() === earningForm.customPlatform.trim().toLowerCase()
           );
-          
+
           if (!platformExists) {
             await db.collection('customPlatforms').add({
               name: earningForm.customPlatform.trim(),
@@ -218,7 +213,7 @@
             });
           }
         }
-        
+
         await db.collection('dailyEarnings').add({
           date: earningForm.date,
           platform: finalPlatform,
@@ -226,7 +221,7 @@
           userId: user.uid,
           createdAt: new Date().toISOString()
         });
-        
+
         setEarningForm({ date: today, platform: 'Uber', customPlatform: '', value: '' });
         setShowEarningModal(false);
       };
@@ -313,272 +308,6 @@
       const custoPorDia = totalDays > 0 ? totalExpenses / totalDays : 0;
       const margemLucro = totalEarnings > 0 ? (workProfit / totalEarnings) * 100 : 0;
 
-      const getCurrentMonthData = (data) => {
-        const now = new Date();
-        return data.filter(item => {
-          const d = new Date(item.date);
-          return d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear();
-        });
-      };
-
-      const getLastMonthData = (data) => {
-        const now = new Date();
-        const lastMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1);
-        return data.filter(item => {
-          const d = new Date(item.date);
-          return d.getMonth() === lastMonth.getMonth() && d.getFullYear() === lastMonth.getFullYear();
-        });
-      };
-
-      const currentMonthEarnings = safeSum(getCurrentMonthData(dailyEarnings));
-      const lastMonthEarnings = safeSum(getLastMonthData(dailyEarnings));
-      const earningsDiff = currentMonthEarnings - lastMonthEarnings;
-      const earningsDiffPercent = lastMonthEarnings > 0 ? (earningsDiff / lastMonthEarnings) * 100 : 0;
-
-      const currentMonthProfit = safeSum(getCurrentMonthData(dailyEarnings)) - safeSum(getCurrentMonthData(expenses));
-      const lastMonthProfit = safeSum(getLastMonthData(dailyEarnings)) - safeSum(getLastMonthData(expenses));
-      const profitDiff = currentMonthProfit - lastMonthProfit;
-      const profitDiffPercent = lastMonthProfit > 0 ? (profitDiff / lastMonthProfit) * 100 : 0;
-
-      const getLast7Days = () => {
-        const days = [];
-        for (let i = 6; i >= 0; i--) {
-          const d = new Date();
-          d.setDate(d.getDate() - i);
-          days.push(d.toISOString().split('T')[0]);
-        }
-        return days;
-      };
-
-      const last7Days = getLast7Days();
-
-      const chartData = last7Days.map(date => {
-        const dayEarnings = dailyEarnings.filter(r => r.date === date);
-        const dayExpenses = expenses.filter(e => e.date === date);
-        const receita = safeSum(dayEarnings);
-        const despesa = safeSum(dayExpenses);
-        const lucro = receita - despesa;
-        return { date, receita, despesa, lucro };
-      });
-
-      const avgReceitaDiaria = chartData.reduce((sum, d) => sum + d.receita, 0) / 7;
-      const avgDespesaDiaria = chartData.reduce((sum, d) => sum + d.despesa, 0) / 7;
-      const avgLucroDiario = avgReceitaDiaria - avgDespesaDiaria;
-
-      const diasRestantesMes = () => {
-        const hoje = new Date();
-        const ultimoDia = new Date(hoje.getFullYear(), hoje.getMonth() + 1, 0);
-        return ultimoDia.getDate() - hoje.getDate();
-      };
-
-      const diasRestantes = diasRestantesMes();
-      const projecaoReceita = currentMonthEarnings + (avgReceitaDiaria * diasRestantes);
-      const projecaoLucro = currentMonthProfit + (avgLucroDiario * diasRestantes);
-
-      const earningsByPlatform = filteredEarnings.reduce((acc, earning) => {
-        const platform = earning.platform || 'Não especificado';
-        if (!acc[platform]) {
-          acc[platform] = 0;
-        }
-        acc[platform] += earning.value;
-        return acc;
-      }, {});
-
-      useEffect(() => {
-        if (activeTab === 'dashboard' && chartRef.current && chartData.length > 0) {
-          if (chartInstance.current) {
-            chartInstance.current.destroy();
-          }
-
-          const ctx = chartRef.current.getContext('2d');
-          chartInstance.current = new Chart(ctx, {
-            type: 'line',
-            data: {
-              labels: last7Days.map(d => {
-                const [y, m, day] = d.split('-');
-                return `${day}/${m}`;
-              }),
-              datasets: [
-                {
-                  label: 'Receita',
-                  data: chartData.map(d => d.receita),
-                  borderColor: '#10b981',
-                  backgroundColor: 'rgba(16, 185, 129, 0.1)',
-                  tension: 0.3,
-                  fill: true
-                },
-                {
-                  label: 'Despesas',
-                  data: chartData.map(d => d.despesa),
-                  borderColor: '#f59e0b',
-                  backgroundColor: 'rgba(245, 158, 11, 0.1)',
-                  tension: 0.3,
-                  fill: true
-                },
-                {
-                  label: 'Lucro',
-                  data: chartData.map(d => d.lucro),
-                  borderColor: '#0ea5e9',
-                  backgroundColor: 'rgba(14, 165, 233, 0.1)',
-                  tension: 0.3,
-                  fill: true
-                }
-              ]
-            },
-            options: {
-              responsive: true,
-              maintainAspectRatio: false,
-              plugins: {
-                legend: {
-                  display: true,
-                  position: 'bottom',
-                  labels: {
-                    boxWidth: 12,
-                    font: { size: 11 }
-                  }
-                }
-              },
-              scales: {
-                y: {
-                  beginAtZero: true,
-                  ticks: {
-                    callback: function(value) {
-                      return 'R$ ' + value.toFixed(0);
-                    }
-                  }
-                }
-              }
-            }
-          });
-        }
-
-        return () => {
-          if (chartInstance.current) {
-            chartInstance.current.destroy();
-          }
-        };
-      }, [activeTab, chartData]);
-
-      useEffect(() => {
-        if (activeTab === 'dashboard' && barChartRef.current) {
-          if (barChartInstance.current) {
-            barChartInstance.current.destroy();
-          }
-
-          const ctx = barChartRef.current.getContext('2d');
-          barChartInstance.current = new Chart(ctx, {
-            type: 'bar',
-            data: {
-              labels: ['Ganho/Dia', 'Custo/Dia', 'Proj. Receita', 'Proj. Lucro'],
-              datasets: [{
-                label: 'Valores (R$)',
-                data: [ticketMedio, custoPorDia, projecaoReceita, projecaoLucro],
-                backgroundColor: [
-                  'rgba(16, 185, 129, 0.7)',
-                  'rgba(245, 158, 11, 0.7)',
-                  'rgba(139, 92, 246, 0.7)',
-                  'rgba(14, 165, 233, 0.7)'
-                ],
-                borderColor: [
-                  '#10b981',
-                  '#f59e0b',
-                  '#8b5cf6',
-                  '#0ea5e9'
-                ],
-                borderWidth: 2
-              }]
-            },
-            options: {
-              responsive: true,
-              maintainAspectRatio: false,
-              plugins: {
-                legend: {
-                  display: false
-                }
-              },
-              scales: {
-                y: {
-                  beginAtZero: true,
-                  ticks: {
-                    callback: function(value) {
-                      return 'R$ ' + value.toFixed(0);
-                    }
-                  }
-                }
-              }
-            }
-          });
-        }
-
-        return () => {
-          if (barChartInstance.current) {
-            barChartInstance.current.destroy();
-          }
-        };
-      }, [activeTab, ticketMedio, custoPorDia, projecaoReceita, projecaoLucro]);
-
-      const exportPDF = () => {
-        const { jsPDF } = window.jspdf;
-        const doc = new jsPDF();
-
-        doc.setFontSize(18);
-        doc.text('Relatorio Financeiro', 20, 20);
-        
-        doc.setFontSize(12);
-        const periodText = filterPeriod === 'week' ? 'Ultima Semana' : filterPeriod === 'month' ? 'Mes Atual' : filterPeriod === 'year' ? 'Ano Atual' : 'Todos';
-        doc.text(`Periodo: ${periodText}`, 20, 30);
-        doc.text(`Data: ${new Date().toLocaleDateString('pt-BR')}`, 20, 37);
-
-        doc.setFontSize(14);
-        doc.text('Resumo Financeiro', 20, 50);
-        
-        doc.setFontSize(11);
-        doc.text(`Receita Total: R$ ${totalEarnings.toFixed(2)}`, 20, 60);
-        doc.text(`Despesas Trabalho: R$ ${totalExpenses.toFixed(2)}`, 20, 67);
-        doc.text(`Lucro Trabalho: R$ ${workProfit.toFixed(2)}`, 20, 74);
-        doc.text(`Despesas Casa: R$ ${totalHouseExpenses.toFixed(2)}`, 20, 81);
-        doc.text(`Saldo Final: R$ ${finalBalance.toFixed(2)}`, 20, 88);
-
-        doc.setFontSize(14);
-        doc.text('Indicadores', 20, 105);
-        
-        doc.setFontSize(11);
-        doc.text(`Ganho por Dia: R$ ${ticketMedio.toFixed(2)}`, 20, 115);
-        doc.text(`Custo por Dia: R$ ${custoPorDia.toFixed(2)}`, 20, 122);
-        doc.text(`Margem de Lucro: ${margemLucro.toFixed(1)}%`, 20, 129);
-
-        doc.setFontSize(14);
-        doc.text('Projecoes do Mes', 20, 145);
-        
-        doc.setFontSize(11);
-        doc.text(`Receita Projetada: R$ ${projecaoReceita.toFixed(2)}`, 20, 155);
-        doc.text(`Lucro Projetado: R$ ${projecaoLucro.toFixed(2)}`, 20, 162);
-
-        doc.setFontSize(14);
-        doc.text('Comparacao Mensal', 20, 178);
-        
-        doc.setFontSize(11);
-        doc.text(`Receita Mes Atual: R$ ${currentMonthEarnings.toFixed(2)}`, 20, 188);
-        doc.text(`Receita Mes Anterior: R$ ${lastMonthEarnings.toFixed(2)}`, 20, 195);
-        const varText = earningsDiffPercent >= 0 ? '+' : '';
-        doc.text(`Variacao: ${varText}${earningsDiffPercent.toFixed(1)}%`, 20, 202);
-
-        if (Object.keys(earningsByPlatform).length > 0) {
-          doc.addPage();
-          doc.setFontSize(14);
-          doc.text('Ganhos por Plataforma', 20, 20);
-          
-          doc.setFontSize(11);
-          let yPos = 30;
-          Object.entries(earningsByPlatform).forEach(([platform, value]) => {
-            doc.text(`${platform}: R$ ${value.toFixed(2)}`, 20, yPos);
-            yPos += 7;
-          });
-        }
-
-        doc.save('relatorio-financeiro.pdf');
-      };
-
       if (loading) {
         return (
           <div className="min-h-screen flex items-center justify-center">
@@ -595,18 +324,16 @@
           <div className="min-h-screen flex items-center justify-center p-4 bg-gradient-to-br from-slate-900 via-slate-800 to-sky-700">
             <div className="w-full max-w-md">
               <div className="flex flex-col items-center mb-6">
-                <img
-                  src="https://i.ibb.co/Y4Jpys2S/download.png"
-                  alt="Gestão Financeira Inteligente"
-                  className="w-64 h-64 rounded-2xl mb-4 shadow-xl object-cover"
-                />
+                <div className="w-32 h-32 bg-white rounded-2xl mb-4 shadow-xl flex items-center justify-center text-6xl">
+                  💰
+                </div>
                 <h1 className="text-2xl font-bold text-white">Gestão Financeira Inteligente</h1>
                 <p className="text-sm text-slate-200 mt-1 text-center px-4">
                   Finanças claras, decisões inteligentes.
                 </p>
               </div>
 
-              <div className="bg-white/95 backdrop-blur rounded-2xl shadow-xl p-6">
+              <div className="bg-white rounded-2xl shadow-xl p-6">
                 <div className="flex gap-2 mb-4">
                   <button
                     onClick={() => setAuthMode('login')}
@@ -663,17 +390,12 @@
                     {authMode === 'login' ? 'Entrar' : 'Criar Conta'}
                   </button>
                 </form>
-
-                <p className="text-[11px] text-slate-400 text-center mt-4">
-                  Seus dados financeiros ficam salvos na nuvem com segurança.
-                </p>
               </div>
             </div>
           </div>
         );
       }
 
-      const mobileCardClass = "bg-white rounded-lg shadow p-4 mb-3";
       const allPlatforms = [...defaultPlatforms, ...customPlatforms.map(p => p.name), 'Outra'];
 
       return (
@@ -686,7 +408,7 @@
               </div>
               <button
                 onClick={handleLogout}
-                className="bg-white/20 hover:bg-white/30 px-3 py-1.5 rounded-lg text-sm transition"
+                className="bg-white bg-opacity-20 hover:bg-opacity-30 px-3 py-1.5 rounded-lg text-sm transition"
               >
                 Sair
               </button>
@@ -727,115 +449,21 @@
           <main className="flex-1 p-3 pb-20 max-w-xl mx-auto w-full">
             {activeTab === 'dashboard' && (
               <div>
-                <div className="bg-white rounded-xl shadow-lg p-3 mb-4">
-                  <div className="flex gap-2 mb-2">
-                    <button
-                      onClick={() => setFilterPeriod('week')}
-                      className={`flex-1 py-1.5 rounded-lg text-xs font-medium transition ${filterPeriod === 'week' ? 'bg-sky-600 text-white' : 'bg-slate-100 text-slate-700'}`}
-                    >
-                      Semana
-                    </button>
-                    <button
-                      onClick={() => setFilterPeriod('month')}
-                      className={`flex-1 py-1.5 rounded-lg text-xs font-medium transition ${filterPeriod === 'month' ? 'bg-sky-600 text-white' : 'bg-slate-100 text-slate-700'}`}
-                    >
-                      Mês
-                    </button>
-                    <button
-                      onClick={() => setFilterPeriod('year')}
-                      className={`flex-1 py-1.5 rounded-lg text-xs font-medium transition ${filterPeriod === 'year' ? 'bg-sky-600 text-white' : 'bg-slate-100 text-slate-700'}`}
-                    >
-                      Ano
-                    </button>
-                    <button
-                      onClick={() => setFilterPeriod('all')}
-                      className={`flex-1 py-1.5 rounded-lg text-xs font-medium transition ${filterPeriod === 'all' ? 'bg-sky-600 text-white' : 'bg-slate-100 text-slate-700'}`}
-                    >
-                      Tudo
-                    </button>
-                  </div>
-                  <button
-                    onClick={exportPDF}
-                    className="w-full bg-red-600 hover:bg-red-700 text-white py-2 rounded-lg text-sm font-semibold transition flex items-center justify-center gap-2"
-                  >
-                    📄 Exportar PDF
-                  </button>
-                </div>
-
-                {Object.keys(earningsByPlatform).length > 0 && (
-                  <div className="bg-white rounded-xl shadow-lg p-4 mb-4">
-                    <h3 className="text-sm font-bold text-slate-700 mb-3 flex items-center">
-                      <span className="mr-2">🚗</span>
-                      Ganhos por Plataforma
-                    </h3>
-                    <div className="space-y-2">
-                      {Object.entries(earningsByPlatform)
-                        .sort((a, b) => b[1] - a[1])
-                        .map(([platform, value]) => (
-                          <div key={platform} className="flex justify-between items-center bg-slate-50 rounded-lg px-3 py-2">
-                            <span className="font-medium text-slate-700">{platform}</span>
-                            <span className="font-bold text-emerald-600">R$ {value.toFixed(2)}</span>
-                          </div>
-                        ))}
-                    </div>
-                  </div>
-                )}
-
-                <div className="bg-gradient-to-br from-indigo-600 to-indigo-700 text-white rounded-xl p-4 mb-4 shadow-lg">
-                  <h3 className="text-sm font-bold mb-3 flex items-center">
-                    <span className="mr-2">📅</span>
-                    Comparação Mensal
-                  </h3>
-                  <div className="grid grid-cols-2 gap-3 text-xs">
-                    <div>
-                      <div className="opacity-80">Receita Mês Atual</div>
-                      <div className="text-lg font-bold">R$ {currentMonthEarnings.toFixed(2)}</div>
-                    </div>
-                    <div>
-                      <div className="opacity-80">Receita Mês Anterior</div>
-                      <div className="text-lg font-bold">R$ {lastMonthEarnings.toFixed(2)}</div>
-                    </div>
-                    <div>
-                      <div className="opacity-80">Lucro Mês Atual</div>
-                      <div className="text-lg font-bold">R$ {currentMonthProfit.toFixed(2)}</div>
-                    </div>
-                    <div>
-                      <div className="opacity-80">Lucro Mês Anterior</div>
-                      <div className="text-lg font-bold">R$ {lastMonthProfit.toFixed(2)}</div>
-                    </div>
-                  </div>
-                  <div className="mt-3 pt-3 border-t border-white/20">
-                    <div className="flex justify-between text-xs">
-                      <span>Variação Receita:</span>
-                      <span className={`font-bold ${earningsDiff >= 0 ? 'text-green-200' : 'text-red-200'}`}>
-                        {earningsDiff >= 0 ? '+' : ''}{earningsDiffPercent.toFixed(1)}% (R$ {earningsDiff.toFixed(2)})
-                      </span>
-                    </div>
-                    <div className="flex justify-between text-xs mt-1">
-                      <span>Variação Lucro:</span>
-                      <span className={`font-bold ${profitDiff >= 0 ? 'text-green-200' : 'text-red-200'}`}>
-                        {profitDiff >= 0 ? '+' : ''}{profitDiffPercent.toFixed(1)}% (R$ {profitDiff.toFixed(2)})
-                      </span>
-                    </div>
-                  </div>
-                </div>
-
                 <div className="grid grid-cols-2 gap-3 mb-4">
                   <div className="bg-gradient-to-br from-emerald-500 to-emerald-600 text-white rounded-xl p-4 shadow-lg">
                     <div className="text-xs opacity-90 font-medium">Receita</div>
                     <div className="text-2xl font-bold mt-1">R$ {totalEarnings.toFixed(2)}</div>
-                    <div className="text-xs opacity-75 mt-1">{totalDays} registros</div>
                   </div>
                   <div className="bg-gradient-to-br from-amber-500 to-amber-600 text-white rounded-xl p-4 shadow-lg">
-                    <div className="text-xs opacity-90 font-medium">Despesas Trabalho</div>
+                    <div className="text-xs opacity-90 font-medium">Despesas</div>
                     <div className="text-2xl font-bold mt-1">R$ {totalExpenses.toFixed(2)}</div>
                   </div>
                   <div className="bg-gradient-to-br from-sky-500 to-sky-600 text-white rounded-xl p-4 shadow-lg">
-                    <div className="text-xs opacity-90 font-medium">Lucro Trabalho</div>
+                    <div className="text-xs opacity-90 font-medium">Lucro</div>
                     <div className="text-2xl font-bold mt-1">R$ {workProfit.toFixed(2)}</div>
                   </div>
                   <div className="bg-gradient-to-br from-rose-500 to-rose-600 text-white rounded-xl p-4 shadow-lg">
-                    <div className="text-xs opacity-90 font-medium">Despesas Casa</div>
+                    <div className="text-xs opacity-90 font-medium">Casa</div>
                     <div className="text-2xl font-bold mt-1">R$ {totalHouseExpenses.toFixed(2)}</div>
                   </div>
                 </div>
@@ -843,107 +471,6 @@
                 <div className={`${finalBalance >= 0 ? 'bg-gradient-to-br from-teal-600 to-teal-700' : 'bg-gradient-to-br from-red-600 to-red-700'} text-white rounded-xl p-5 mb-4 shadow-lg`}>
                   <div className="text-sm opacity-90 font-medium">Saldo Final</div>
                   <div className="text-3xl font-bold mt-1">R$ {finalBalance.toFixed(2)}</div>
-                </div>
-
-                <div className="bg-gradient-to-br from-purple-600 to-purple-700 text-white rounded-xl p-4 mb-4 shadow-lg">
-                  <h3 className="text-sm font-bold mb-3 flex items-center">
-                    <span className="mr-2">🔮</span>
-                    Projeção do Mês (baseado em 7 dias)
-                  </h3>
-                  <div className="grid grid-cols-2 gap-3">
-                    <div>
-                      <div className="text-xs opacity-80">Receita Projetada</div>
-                      <div className="text-xl font-bold">R$ {projecaoReceita.toFixed(2)}</div>
-                    </div>
-                    <div>
-                      <div className="text-xs opacity-80">Lucro Projetado</div>
-                      <div className="text-xl font-bold">R$ {projecaoLucro.toFixed(2)}</div>
-                    </div>
-                  </div>
-                  <div className="text-xs opacity-75 mt-2">
-                    Faltam {diasRestantes} dias para o fim do mês
-                  </div>
-                </div>
-
-                <div className="bg-white rounded-xl shadow-lg p-4 mb-4">
-                  <h3 className="text-sm font-bold text-slate-700 mb-3 flex items-center">
-                    <span className="mr-2">📈</span>
-                    Evolução (últimos 7 dias)
-                  </h3>
-                  <div style={{ height: '220px' }}>
-                    <canvas ref={chartRef}></canvas>
-                  </div>
-                </div>
-
-                <div className="bg-white rounded-xl shadow-lg p-4 mb-4">
-                  <h3 className="text-sm font-bold text-slate-700 mb-3 flex items-center">
-                    <span className="mr-2">📊</span>
-                    Indicadores & Projeções
-                  </h3>
-                  <div style={{ height: '220px' }}>
-                    <canvas ref={barChartRef}></canvas>
-                  </div>
-                </div>
-
-                <div className="bg-white rounded-xl shadow-lg p-4 mb-4">
-                  <h3 className="text-sm font-bold text-slate-700 mb-3 flex items-center">
-                    <span className="mr-2">🎯</span>
-                    Indicadores de Eficiência
-                  </h3>
-                  <div className="grid grid-cols-3 gap-3">
-                    <div className="bg-slate-50 rounded-lg p-3 text-center">
-                      <div className="text-xs text-slate-500 mb-1">Ganho/Dia</div>
-                      <div className="text-lg font-bold text-emerald-600">
-                        R$ {ticketMedio.toFixed(2)}
-                      </div>
-                    </div>
-                    <div className="bg-slate-50 rounded-lg p-3 text-center">
-                      <div className="text-xs text-slate-500 mb-1">Custo/Dia</div>
-                      <div className="text-lg font-bold text-amber-600">
-                        R$ {custoPorDia.toFixed(2)}
-                      </div>
-                    </div>
-                    <div className="bg-slate-50 rounded-lg p-3 text-center">
-                      <div className="text-xs text-slate-500 mb-1">Margem</div>
-                      <div className={`text-lg font-bold ${margemLucro >= 0 ? 'text-sky-600' : 'text-red-600'}`}>
-                        {margemLucro.toFixed(1)}%
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="bg-white rounded-xl shadow-lg p-4">
-                  <h2 className="text-sm font-bold text-slate-700 mb-3 flex items-center">
-                    <span className="mr-2">📋</span>
-                    Atividade Recente
-                  </h2>
-                  <div className="space-y-2 text-sm">
-                    {[...filteredEarnings.slice(0, 3).map(r => ({...r, type: 'earning'})),
-                      ...filteredExpenses.slice(0, 3).map(e => ({...e, type: 'expense'})),
-                      ...filteredHouseExpenses.slice(0, 3).map(h => ({...h, type: 'house'}))]
-                      .sort((a, b) => new Date(b.date) - new Date(a.date))
-                      .slice(0, 5)
-                      .map((item, idx) => (
-                        <div key={idx} className="flex justify-between items-center bg-slate-50 rounded-lg px-3 py-2.5">
-                          <div>
-                            <span className="font-semibold text-slate-700">
-                              {item.type === 'earning' && `💵 ${item.platform || 'Ganho'}`}
-                              {item.type === 'expense' && '⛽ Trabalho'}
-                              {item.type === 'house' && '🏠 Casa'}
-                            </span>
-                            <span className="text-slate-400 text-xs ml-2">{item.date}</span>
-                          </div>
-                          <span className={`font-bold ${item.type === 'earning' ? 'text-emerald-600' : 'text-red-600'}`}>
-                            {item.type === 'earning' ? '+' : '-'} R$ {item.value.toFixed(2)}
-                          </span>
-                        </div>
-                      ))}
-                    {filteredEarnings.length === 0 && filteredExpenses.length === 0 && filteredHouseExpenses.length === 0 && (
-                      <p className="text-center text-slate-400 py-6 text-xs">
-                        Nenhuma atividade registrada ainda
-                      </p>
-                    )}
-                  </div>
                 </div>
               </div>
             )}
@@ -960,25 +487,6 @@
                   </button>
                 </div>
 
-                {customPlatforms.length > 0 && (
-                  <div className="bg-white rounded-xl shadow-lg p-4 mb-4">
-                    <h3 className="text-sm font-bold text-slate-700 mb-3">Minhas Plataformas</h3>
-                    <div className="space-y-2">
-                      {customPlatforms.map(platform => (
-                        <div key={platform.id} className="flex justify-between items-center bg-slate-50 rounded-lg px-3 py-2">
-                          <span className="text-sm font-medium text-slate-700">{platform.name}</span>
-                          <button
-                            onClick={() => deleteCustomPlatform(platform.id)}
-                            className="text-xs text-red-600 hover:text-red-700 font-medium"
-                          >
-                            Excluir
-                          </button>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                )}
-
                 {filteredEarnings.length === 0 && (
                   <p className="text-center text-slate-400 text-sm mt-6">
                     Nenhum ganho registrado
@@ -986,7 +494,7 @@
                 )}
 
                 {filteredEarnings.map(earning => (
-                  <div key={earning.id} className={mobileCardClass}>
+                  <div key={earning.id} className="bg-white rounded-lg shadow p-4 mb-3">
                     <div className="flex justify-between items-center mb-1">
                       <div>
                         <span className="font-semibold text-slate-700">{earning.platform || 'Ganho'}</span>
@@ -1026,7 +534,7 @@
                 )}
 
                 {filteredExpenses.map(expense => (
-                  <div key={expense.id} className={mobileCardClass}>
+                  <div key={expense.id} className="bg-white rounded-lg shadow p-4 mb-3">
                     <div className="flex justify-between items-center mb-1">
                       <span className="font-semibold text-slate-700">{expense.category}</span>
                       <span className="text-xs text-slate-400">{expense.date}</span>
@@ -1069,7 +577,7 @@
                 )}
 
                 {filteredHouseExpenses.map(house => (
-                  <div key={house.id} className={mobileCardClass}>
+                  <div key={house.id} className="bg-white rounded-lg shadow p-4 mb-3">
                     <div className="flex justify-between items-center mb-1">
                       <span className="font-semibold text-slate-700">{house.category}</span>
                       <span className="text-xs text-slate-400">{house.date}</span>
@@ -1233,4 +741,79 @@
           )}
 
           {showHouseModal && (
-            <div className="fixed inset-0 bg-black bg-opacity-50
+            <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-30">
+              <div className="bg-white rounded-xl p-5 w-full max-w-sm shadow-2xl">
+                <h3 className="text-lg font-bold mb-4 text-slate-700">🏠 Nova Despesa Casa</h3>
+                <div className="space-y-3 text-sm">
+                  <div>
+                    <label className="block mb-1 font-medium text-slate-600">Data</label>
+                    <input
+                      type="date"
+                      value={houseForm.date}
+                      onChange={e => setHouseForm({...houseForm, date: e.target.value})}
+                      className="w-full border border-slate-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-rose-500 focus:border-rose-500"
+                    />
+                  </div>
+                  <div>
+                    <label className="block mb-1 font-medium text-slate-600">Categoria</label>
+                    <select
+                      value={houseForm.category}
+                      onChange={e => setHouseForm({...houseForm, category: e.target.value})}
+                      className="w-full border border-slate-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-rose-500 focus:border-rose-500"
+                    >
+                      <option>Alimentação</option>
+                      <option>Aluguel</option>
+                      <option>Água</option>
+                      <option>Luz</option>
+                      <option>Internet</option>
+                      <option>Telefone</option>
+                      <option>Outro</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block mb-1 font-medium text-slate-600">Descrição</label>
+                    <input
+                      type="text"
+                      value={houseForm.description}
+                      onChange={e => setHouseForm({...houseForm, description: e.target.value})}
+                      className="w-full border border-slate-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-rose-500 focus:border-rose-500"
+                      placeholder="Detalhes da despesa"
+                    />
+                  </div>
+                  <div>
+                    <label className="block mb-1 font-medium text-slate-600">Valor (R$)</label>
+                    <input
+                      type="number"
+                      step="0.01"
+                      value={houseForm.value}
+                      onChange={e => setHouseForm({...houseForm, value: e.target.value})}
+                      className="w-full border border-slate-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-rose-500 focus:border-rose-500"
+                      placeholder="0,00"
+                    />
+                  </div>
+                </div>
+                <div className="flex gap-2 mt-5">
+                  <button
+                    onClick={() => setHouseForm({ date: today, category: 'Alimentação', description: '', value: '' })}
+                    className="flex-1 bg-slate-200 hover:bg-slate-300 text-slate-700 py-2.5 rounded-lg font-medium transition"
+                  >
+                    Cancelar
+                  </button>
+                  <button
+                    onClick={addHouseExpense}
+                    className="flex-1 bg-rose-600 hover:bg-rose-700 text-white py-2.5 rounded-lg font-medium transition"
+                  >
+                    Salvar
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
+      );
+    }
+
+    ReactDOM.render(<App />, document.getElementById('root'));
+  </script>
+</body>
+</html>
