@@ -2,75 +2,81 @@
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8" />
-  <title>Gestão Financeira Inteligente - Gordinho do Comfort</title>
+  <title>Gestão Financeira - Gordinho do Comfort</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-
-  <!-- Tailwind CDN -->
   <script src="https://cdn.tailwindcss.com"></script>
-
-  <!-- Chart.js -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
   <style>
+    * {
+      box-sizing: border-box;
+    }
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    }
     .card {
-      @apply bg-slate-900/80 border border-slate-800 rounded-2xl p-4 sm:p-5;
+      @apply bg-white border border-slate-200 rounded-xl p-5 shadow-sm;
     }
     .card-label {
-      @apply text-xs text-slate-400 mb-1;
+      @apply text-xs text-slate-500 mb-1 font-medium uppercase tracking-wide;
     }
     .card-value {
-      @apply text-xl sm:text-2xl font-semibold;
+      @apply text-2xl sm:text-3xl font-bold text-slate-900;
     }
     .label {
-      @apply block text-xs text-slate-300 mb-1;
+      @apply block text-sm text-slate-700 mb-1.5 font-medium;
     }
     .input {
-      @apply w-full rounded-lg bg-slate-800 border border-slate-700 text-sm px-3 py-2 text-slate-100 focus:outline-none focus:border-emerald-400;
+      @apply w-full rounded-lg bg-white border border-slate-300 text-sm px-3 py-2.5 text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent;
     }
     .btn-primary {
-      @apply px-3 py-1.5 rounded-lg bg-emerald-500 text-slate-950 text-xs sm:text-sm font-semibold hover:bg-emerald-400 transition;
+      @apply px-4 py-2.5 rounded-lg bg-emerald-600 text-white text-sm font-semibold hover:bg-emerald-700 transition shadow-sm;
     }
     .btn-secondary {
-      @apply px-3 py-1.5 rounded-lg bg-slate-800 text-slate-100 text-xs sm:text-sm border border-slate-700 hover:bg-slate-700 transition;
+      @apply px-4 py-2.5 rounded-lg bg-white text-slate-700 text-sm font-medium border border-slate-300 hover:bg-slate-50 transition;
     }
-    .period-btn {
-      @apply px-3 py-1.5 rounded-full border border-slate-700 bg-slate-900 text-xs sm:text-sm text-slate-200;
+    .btn-danger {
+      @apply px-2 py-1 rounded text-xs font-medium bg-red-50 text-red-600 hover:bg-red-100 transition;
     }
-    .period-active {
-      @apply border-emerald-400 text-emerald-300 bg-emerald-500/10;
+    .tab-btn {
+      @apply px-4 py-2 rounded-lg text-sm font-medium text-slate-600 hover:text-slate-900 hover:bg-slate-100 transition;
+    }
+    .tab-active {
+      @apply bg-emerald-50 text-emerald-700 font-semibold;
     }
     .section-title {
-      @apply text-sm sm:text-base font-semibold text-emerald-300 mb-1;
+      @apply text-lg font-bold text-slate-900 mb-1;
     }
     .section-subtitle {
-      @apply text-[11px] sm:text-xs text-slate-400 mb-3;
+      @apply text-sm text-slate-500 mb-4;
     }
   </style>
 </head>
-<body class="bg-slate-950 text-slate-100 min-h-screen flex flex-col">
+<body class="bg-slate-50 text-slate-900 min-h-screen">
 
   <!-- HEADER -->
-  <header class="bg-slate-900/90 border-b border-slate-800 backdrop-blur">
-    <div class="max-w-5xl mx-auto flex items-center justify-between px-4 sm:px-6 py-3">
+  <header class="bg-white border-b border-slate-200 sticky top-0 z-30 shadow-sm">
+    <div class="max-w-6xl mx-auto flex items-center justify-between px-4 sm:px-6 py-4">
       <div class="flex items-center gap-3">
         <img
-          src="https://raw.githubusercontent.com/eduardoeff/gestao-financeira-motorista/main/logo-gordinho-comfort.png"
-          alt="Logo Gordinho do Comfort"
-          class="w-10 h-10 sm:w-12 sm:h-12 rounded-full border border-emerald-400 shadow-lg object-cover"
+          id="logoImg"
+          src=""
+          alt="Logo"
+          class="w-12 h-12 rounded-full border-2 border-emerald-500 shadow-md object-cover hidden"
         />
         <div>
-          <h1 class="text-lg sm:text-xl md:text-2xl font-bold text-emerald-400">
-            Gestão Financeira Inteligente
+          <h1 class="text-xl sm:text-2xl font-bold text-slate-900">
+            Gestão Financeira
           </h1>
-          <p class="text-[11px] sm:text-xs text-slate-400">
-            Gordinho do Comfort • Controle completo de ganhos, despesas e metas.
+          <p class="text-xs text-slate-500">
+            Gordinho do Comfort
           </p>
         </div>
       </div>
 
       <button
         id="logoutBtn"
-        class="hidden sm:inline-flex px-3 py-1.5 rounded-lg text-xs font-medium bg-slate-900 text-slate-100 border border-slate-700 hover:border-emerald-400 hover:text-emerald-400 transition"
+        class="hidden sm:inline-flex px-4 py-2 rounded-lg text-sm font-medium bg-slate-100 text-slate-700 hover:bg-slate-200 transition"
       >
         Sair
       </button>
@@ -79,26 +85,28 @@
 
   <!-- MAIN -->
   <main class="flex-1">
-    <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6">
+    <div class="max-w-6xl mx-auto px-4 sm:px-6 py-6 sm:py-8">
 
       <!-- LOGIN -->
-      <section id="authSection" class="max-w-md mx-auto mt-8 sm:mt-12">
-        <div class="bg-slate-900/90 border border-slate-800 rounded-2xl shadow-2xl p-6 sm:p-8">
-          <h2 class="text-xl sm:text-2xl font-semibold text-center mb-1">
-            Entrar no painel financeiro
-          </h2>
-          <p class="text-xs sm:text-sm text-slate-400 text-center mb-5">
-            Acompanhe seus <span class="text-emerald-400 font-semibold">ganhos diários, despesas de trabalho e de casa</span> em um só lugar.
-          </p>
+      <section id="authSection" class="max-w-md mx-auto mt-12">
+        <div class="bg-white border border-slate-200 rounded-2xl shadow-lg p-8">
+          <div class="text-center mb-6">
+            <h2 class="text-2xl font-bold text-slate-900 mb-2">
+              Bem-vindo de volta
+            </h2>
+            <p class="text-sm text-slate-500">
+              Acesse sua conta para continuar
+            </p>
+          </div>
 
-          <div class="space-y-3 mb-4">
+          <div class="space-y-4 mb-6">
             <div>
               <label class="label">E-mail</label>
               <input
                 id="emailInput"
                 type="email"
                 class="input"
-                placeholder="seuemail@exemplo.com"
+                placeholder="seu@email.com"
               />
             </div>
             <div>
@@ -107,235 +115,154 @@
                 id="passwordInput"
                 type="password"
                 class="input"
-                placeholder="********"
+                placeholder="••••••••"
               />
             </div>
           </div>
 
-          <button
-            id="loginBtn"
-            class="w-full mb-2 px-4 py-2 rounded-lg bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-semibold text-sm transition"
-          >
+          <button id="loginBtn" class="w-full btn-primary mb-3">
             Entrar
           </button>
-          <button
-            id="registerBtn"
-            class="w-full px-4 py-2 rounded-lg bg-slate-900 hover:bg-slate-800 text-slate-100 text-sm border border-slate-700"
-          >
+          <button id="registerBtn" class="w-full btn-secondary mb-3">
             Criar nova conta
           </button>
-
-          <p class="mt-3 text-[11px] text-slate-500 text-center">
-            Seus dados ficam salvos com segurança no <span class="text-emerald-400 font-medium">Firebase</span>.
-          </p>
+          <button id="forgotPasswordBtn" class="w-full text-sm text-emerald-600 hover:text-emerald-700 font-medium">
+            Esqueci minha senha
+          </button>
         </div>
       </section>
 
-      <!-- APP PRINCIPAL -->
-      <section id="appSection" class="hidden mt-4 sm:mt-6 space-y-4">
+      <!-- APP -->
+      <section id="appSection" class="hidden space-y-6">
 
-        <!-- INFO DO USUÁRIO / RESUMO -->
-        <div class="bg-slate-900/80 border border-slate-800 rounded-2xl px-3 sm:px-4 py-3 flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-3">
-          <div class="flex-1">
-            <p class="text-xs text-slate-400">
-              Bem-vindo, <span id="userEmailLabel" class="text-slate-100 font-medium">motorista</span>.
-            </p>
-            <p class="text-[11px] text-slate-500">
-              Use as abas abaixo para cadastrar ganhos, despesas e metas, e acompanhe tudo no Dashboard.
-            </p>
-          </div>
-          <button
-            id="logoutBtnMobile"
-            class="sm:hidden mt-2 px-3 py-1.5 rounded-lg border border-slate-700 bg-slate-900 text-xs font-medium text-slate-200"
-          >
-            Sair
-          </button>
-        </div>
-
-        <!-- NAV TABS -->
-        <nav class="flex flex-wrap gap-2 mb-1">
-          <button data-tab="dashboard" class="tab-btn px-3 py-1.5 rounded-full border border-emerald-400 bg-emerald-500/20 text-xs sm:text-sm font-medium text-emerald-300">
+        <!-- TABS -->
+        <nav class="bg-white border border-slate-200 rounded-xl p-2 flex flex-wrap gap-1 shadow-sm">
+          <button data-tab="dashboard" class="tab-btn tab-active flex-1 sm:flex-none">
             📊 Dashboard
           </button>
-          <button data-tab="earnings" class="tab-btn px-3 py-1.5 rounded-full border border-slate-700 bg-slate-900 text-xs sm:text-sm font-medium text-slate-200">
+          <button data-tab="earnings" class="tab-btn flex-1 sm:flex-none">
             💰 Ganhos
           </button>
-          <button data-tab="goals" class="tab-btn px-3 py-1.5 rounded-full border border-slate-700 bg-slate-900 text-xs sm:text-sm font-medium text-slate-200">
+          <button data-tab="goals" class="tab-btn flex-1 sm:flex-none">
             🎯 Metas
           </button>
-          <button data-tab="work" class="tab-btn px-3 py-1.5 rounded-full border border-slate-700 bg-slate-900 text-xs sm:text-sm font-medium text-slate-200">
+          <button data-tab="work" class="tab-btn flex-1 sm:flex-none">
             🚗 Trabalho
           </button>
-          <button data-tab="home" class="tab-btn px-3 py-1.5 rounded-full border border-slate-700 bg-slate-900 text-xs sm:text-sm font-medium text-slate-200">
+          <button data-tab="home" class="tab-btn flex-1 sm:flex-none">
             🏠 Casa
+          </button>
+          <button
+            id="logoutBtnMobile"
+            class="sm:hidden ml-auto px-3 py-2 rounded-lg text-xs font-medium bg-slate-100 text-slate-700"
+          >
+            Sair
           </button>
         </nav>
 
         <!-- DASHBOARD -->
-        <section id="tab-dashboard" class="tab-panel space-y-4">
-          <div>
-            <h3 class="section-title">Visão geral financeira</h3>
-            <p class="section-subtitle">
-              Veja o resumo do período selecionado: ganhos, despesas de trabalho, despesas de casa, lucro e saldo final.
-            </p>
-          </div>
+        <section id="tab-dashboard" class="tab-panel space-y-6">
 
-          <!-- Filtro de período -->
-          <div class="flex flex-wrap items-center gap-2 mb-1">
-            <span class="text-[11px] sm:text-xs text-slate-400 mr-1">Período:</span>
-            <button class="period-btn period-active" data-period="last7">Última Semana</button>
-            <button class="period-btn" data-period="month">Mês Atual</button>
-            <button class="period-btn" data-period="year">Ano Atual</button>
-            <button class="period-btn" data-period="prevMonth">Mês Anterior</button>
+          <!-- Filtro de período (dropdown) -->
+          <div class="bg-white border border-slate-200 rounded-xl p-4 shadow-sm">
+            <label class="label">Período</label>
+            <select id="periodSelect" class="input">
+              <option value="last7">Última Semana</option>
+              <option value="month">Mês Atual</option>
+              <option value="prevMonth">Mês Anterior</option>
+              <option value="year">Ano Todo</option>
+            </select>
           </div>
 
           <!-- Cards principais -->
           <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
             <div class="card">
-              <p class="card-label">Total de Ganhos</p>
-              <p id="totalEarningsDisplay" class="card-value">R$ 0,00</p>
+              <p class="card-label">Ganhos</p>
+              <p id="totalEarningsDisplay" class="card-value text-emerald-600">R$ 0,00</p>
             </div>
             <div class="card">
-              <p class="card-label">Despesas de Trabalho</p>
-              <p id="totalWorkExpensesDisplay" class="card-value">R$ 0,00</p>
+              <p class="card-label">Despesas Trabalho</p>
+              <p id="totalWorkExpensesDisplay" class="card-value text-orange-600">R$ 0,00</p>
             </div>
             <div class="card">
-              <p class="card-label">Despesas de Casa</p>
-              <p id="totalHouseExpensesDisplay" class="card-value">R$ 0,00</p>
+              <p class="card-label">Despesas Casa</p>
+              <p id="totalHouseExpensesDisplay" class="card-value text-blue-600">R$ 0,00</p>
             </div>
             <div class="card">
-              <p class="card-label">Lucro (Ganhos - Trabalho)</p>
-              <p id="profitDisplay" class="card-value text-emerald-400">R$ 0,00</p>
+              <p class="card-label">Lucro</p>
+              <p id="profitDisplay" class="card-value text-emerald-700">R$ 0,00</p>
             </div>
             <div class="card">
-              <p class="card-label">Saldo Final (após Casa)</p>
+              <p class="card-label">Saldo Final</p>
               <p id="finalBalanceDisplay" class="card-value">R$ 0,00</p>
             </div>
-          </div>
-
-          <!-- Indicadores de eficiência -->
-          <div class="bg-slate-900/80 border border-slate-800 rounded-2xl p-4 sm:p-5">
-            <h3 class="section-title">📈 Indicadores de Eficiência</h3>
-            <p class="section-subtitle">
-              Métricas para entender se o seu trabalho está valendo a pena no período escolhido.
-            </p>
-
-            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-              <div>
-                <p class="text-xs text-slate-400 mb-1">Ticket Médio por Dia</p>
-                <p id="avgTicketDisplay" class="text-lg font-semibold">R$ 0,00</p>
-                <p class="text-[10px] text-slate-500">Média dos ganhos diários.</p>
-              </div>
-              <div>
-                <p class="text-xs text-slate-400 mb-1">Custo Médio Diário (Trabalho)</p>
-                <p id="costPerDayDisplay" class="text-lg font-semibold">R$ 0,00</p>
-                <p class="text-[10px] text-slate-500">Combustível, pedágio, manutenção, etc.</p>
-              </div>
-              <div>
-                <p class="text-xs text-slate-400 mb-1">Margem de Lucro</p>
-                <p id="marginDisplay" class="text-lg font-semibold">0%</p>
-                <p class="text-[10px] text-slate-500">Lucro em relação ao total de ganhos.</p>
-              </div>
-              <div>
-                <p class="text-xs text-slate-400 mb-1">Meta Diária Atual</p>
-                <p id="currentDailyGoalDisplay" class="text-lg font-semibold text-emerald-400">
-                  R$ 0,00
-                </p>
-                <p class="text-[10px] text-slate-500">Calculada a partir das suas metas de mês/semana.</p>
-              </div>
+            <div class="card">
+              <p class="card-label">Meta Diária</p>
+              <p id="currentDailyGoalDisplay" class="card-value text-purple-600">R$ 0,00</p>
             </div>
           </div>
 
           <!-- Gráfico -->
-          <div class="bg-slate-900/80 border border-slate-800 rounded-2xl p-4 sm:p-5">
-            <div class="flex items-center justify-between mb-2">
-              <div>
-                <h3 class="section-title">📊 Evolução de Ganhos no Mês</h3>
-                <p class="section-subtitle">
-                  Mostra quanto você está faturando dia a dia no mês atual.
-                </p>
-              </div>
-            </div>
-            <canvas id="earningsChart" class="w-full h-48 sm:h-64"></canvas>
+          <div class="bg-white border border-slate-200 rounded-xl p-5 shadow-sm">
+            <h3 class="section-title">Evolução de Ganhos (Mês Atual)</h3>
+            <canvas id="earningsChart" class="w-full h-64"></canvas>
           </div>
         </section>
 
         <!-- GANHOS -->
         <section id="tab-earnings" class="tab-panel hidden space-y-4">
-          <div>
-            <h3 class="section-title">Registro de Ganhos Diários</h3>
-            <p class="section-subtitle">
-              Cadastre aqui quanto você faturou em cada dia e plataforma. Isso alimenta o Dashboard e as Metas.
-            </p>
-          </div>
-
-          <div class="flex justify-between items-center mb-1">
-            <p class="text-[11px] text-slate-500">
-              Use o botão abaixo para registrar o ganho de hoje ou de um dia anterior.
-            </p>
+          <div class="flex justify-between items-center">
+            <div>
+              <h3 class="section-title">Ganhos Diários</h3>
+              <p class="section-subtitle">Registre seus ganhos por plataforma</p>
+            </div>
             <button
               id="openEarningsModalBtn"
-              class="px-3 py-1.5 rounded-lg text-xs sm:text-sm font-medium bg-emerald-500 text-slate-950 hover:bg-emerald-400"
+              class="btn-primary"
             >
-              + Adicionar Ganho
+              + Adicionar
             </button>
           </div>
 
-          <ul id="earningsList" class="space-y-2 text-xs sm:text-sm">
-            <!-- items via JS -->
+          <ul id="earningsList" class="space-y-2">
+            <!-- via JS -->
           </ul>
         </section>
 
         <!-- METAS -->
         <section id="tab-goals" class="tab-panel hidden space-y-4">
           <div>
-            <h3 class="section-title">Definição de Metas</h3>
-            <p class="section-subtitle">
-              Configure metas mensais e semanais para ter uma meta diária automática e saber se está batendo o objetivo.
-            </p>
+            <h3 class="section-title">Metas</h3>
+            <p class="section-subtitle">Configure suas metas mensais e semanais</p>
           </div>
 
-          <div class="bg-slate-900/80 border border-slate-800 rounded-2xl p-4 sm:p-5 space-y-3">
-            <h4 class="text-sm font-semibold text-emerald-300 flex items-center gap-2">
-              🎯 Meta Mensal
-            </h4>
-            <p class="text-[11px] text-slate-500">
-              Informe quanto você quer faturar no mês. A partir disso calculamos uma meta diária.
-            </p>
-
-            <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 items-end">
+          <div class="card space-y-4">
+            <h4 class="text-base font-semibold text-slate-900">Meta Mensal</h4>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div>
                 <label class="label">Mês</label>
                 <input id="monthlyGoalMonth" type="month" class="input" />
               </div>
               <div>
-                <label class="label">Valor da Meta (R$)</label>
+                <label class="label">Valor (R$)</label>
                 <input
                   id="monthlyGoalValue"
                   type="number"
                   min="0"
                   step="0.01"
                   class="input"
-                  placeholder="ex: 6000"
+                  placeholder="6000"
                 />
               </div>
-              <div class="flex gap-2">
-                <button id="saveMonthlyGoalBtn" class="btn-primary flex-1">
-                  Salvar Meta Mensal
-                </button>
-              </div>
             </div>
+            <button id="saveMonthlyGoalBtn" class="btn-primary">
+              Salvar Meta Mensal
+            </button>
           </div>
 
-          <div class="bg-slate-900/80 border border-slate-800 rounded-2xl p-4 sm:p-5 space-y-3">
-            <h4 class="text-sm font-semibold text-emerald-300 flex items-center gap-2">
-              🎯 Meta Semanal
-            </h4>
-            <p class="text-[11px] text-slate-500">
-              Use metas semanais quando seu mês é irregular (ex.: semanas mais fortes ou mais fracas).
-            </p>
-
-            <div class="grid grid-cols-1 sm:grid-cols-4 gap-3 items-end">
+          <div class="card space-y-4">
+            <h4 class="text-base font-semibold text-slate-900">Meta Semanal</h4>
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
               <div>
                 <label class="label">Mês</label>
                 <input id="weeklyGoalMonth" type="month" class="input" />
@@ -349,96 +276,68 @@
                   <option value="4">Semana 4</option>
                   <option value="5">Semana 5</option>
                 </select>
-                <p class="text-[10px] text-slate-500 mt-1">
-                  Use Ctrl (ou Command) para selecionar várias semanas.
-                </p>
               </div>
               <div>
-                <label class="label">Valor da Meta (R$)</label>
+                <label class="label">Valor (R$)</label>
                 <input
                   id="weeklyGoalValue"
                   type="number"
                   min="0"
                   step="0.01"
                   class="input"
-                  placeholder="ex: 1500"
+                  placeholder="1500"
                 />
               </div>
-              <div class="flex gap-2">
-                <button id="saveWeeklyGoalBtn" class="btn-primary flex-1">
-                  Salvar Meta Semanal
-                </button>
-              </div>
             </div>
+            <button id="saveWeeklyGoalBtn" class="btn-primary">
+              Salvar Meta Semanal
+            </button>
           </div>
 
-          <div class="bg-slate-900/80 border border-slate-800 rounded-2xl p-4 sm:p-5 flex flex-col sm:flex-row items-start sm:items-center gap-3">
-            <div class="flex-1">
-              <p class="text-xs text-slate-400 mb-1">Meta Diária Calculada</p>
-              <p id="goalsCurrentDailyDisplay" class="text-xl font-semibold text-emerald-400">
-                R$ 0,00
-              </p>
-              <p class="text-[10px] text-slate-500 mt-1">
-                A meta diária leva em conta sua meta semanal (se houver) ou mensal do mês atual.
-              </p>
-            </div>
-            <button
-              id="clearGoalsBtn"
-              class="px-3 py-1.5 rounded-lg border border-red-500/70 text-xs sm:text-sm text-red-300 hover:bg-red-500/10"
-            >
-              Limpar todas as metas
-            </button>
+          <div class="card">
+            <p class="text-sm text-slate-500 mb-2">Meta Diária Calculada</p>
+            <p id="goalsCurrentDailyDisplay" class="text-3xl font-bold text-purple-600">
+              R$ 0,00
+            </p>
           </div>
         </section>
 
         <!-- TRABALHO -->
         <section id="tab-work" class="tab-panel hidden space-y-4">
-          <div>
-            <h3 class="section-title">Despesas de Trabalho</h3>
-            <p class="section-subtitle">
-              Tudo que você gasta para rodar: combustível, pedágio, estacionamento, lavagem, manutenção, etc.
-            </p>
-          </div>
-
-          <div class="flex justify-between items-center mb-1">
-            <p class="text-[11px] text-slate-500">
-              Registre aqui os custos do dia a dia do carro. Eles impactam diretamente no seu lucro.
-            </p>
+          <div class="flex justify-between items-center">
+            <div>
+              <h3 class="section-title">Despesas de Trabalho</h3>
+              <p class="section-subtitle">Combustível, manutenção, pedágio, etc.</p>
+            </div>
             <button
               id="openWorkExpenseModalBtn"
-              class="px-3 py-1.5 rounded-lg text-xs sm:text-sm font-medium bg-emerald-500 text-slate-950 hover:bg-emerald-400"
+              class="btn-primary"
             >
-              + Adicionar Despesa
+              + Adicionar
             </button>
           </div>
 
-          <ul id="workExpensesList" class="space-y-2 text-xs sm:text-sm">
+          <ul id="workExpensesList" class="space-y-2">
             <!-- via JS -->
           </ul>
         </section>
 
         <!-- CASA -->
         <section id="tab-home" class="tab-panel hidden space-y-4">
-          <div>
-            <h3 class="section-title">Despesas de Casa</h3>
-            <p class="section-subtitle">
-              Aluguel, contas fixas e despesas do lar. Aqui você vê quanto do lucro realmente fica para a sua casa.
-            </p>
-          </div>
-
-          <div class="flex justify-between items-center mb-1">
-            <p class="text-[11px] text-slate-500">
-              Cadastre somente o que impacta diretamente no seu orçamento mensal.
-            </p>
+          <div class="flex justify-between items-center">
+            <div>
+              <h3 class="section-title">Despesas de Casa</h3>
+              <p class="section-subtitle">Aluguel, contas fixas, mercado, etc.</p>
+            </div>
             <button
               id="openHouseExpenseModalBtn"
-              class="px-3 py-1.5 rounded-lg text-xs sm:text-sm font-medium bg-emerald-500 text-slate-950 hover:bg-emerald-400"
+              class="btn-primary"
             >
-              + Adicionar Despesa
+              + Adicionar
             </button>
           </div>
 
-          <ul id="houseExpensesList" class="space-y-2 text-xs sm:text-sm">
+          <ul id="houseExpensesList" class="space-y-2">
             <!-- via JS -->
           </ul>
         </section>
@@ -446,115 +345,125 @@
     </div>
   </main>
 
-  <!-- MODAIS (mesmos campos, só layout melhorado) -->
-
   <!-- MODAL GANHOS -->
-  <div id="earningsModal" class="fixed inset-0 bg-black/60 flex items-center justify-center z-40 hidden">
-    <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5 w-full max-w-md mx-4">
-      <h3 class="text-sm sm:text-base font-semibold text-emerald-300 mb-1">
-        💰 Adicionar Ganho do Dia
+  <div id="earningsModal" class="fixed inset-0 bg-black/40 flex items-center justify-center z-50 hidden">
+    <div class="bg-white rounded-2xl p-6 w-full max-w-md mx-4 shadow-2xl">
+      <h3 class="text-lg font-bold text-slate-900 mb-4">
+        Adicionar Ganho
       </h3>
-      <p class="text-[11px] text-slate-500 mb-3">
-        Registre aqui o valor líquido do dia em cada plataforma.
-      </p>
 
-      <label class="label">Data</label>
-      <input id="earningsDate" type="date" class="input mb-2" />
+      <div class="space-y-3 mb-5">
+        <div>
+          <label class="label">Data</label>
+          <input id="earningsDate" type="date" class="input" />
+        </div>
+        <div>
+          <label class="label">Plataforma</label>
+          <select id="earningsPlatform" class="input">
+            <option value="Uber">Uber</option>
+            <option value="99">99</option>
+            <option value="InDriver">InDriver</option>
+            <option value="Outros">Outros</option>
+          </select>
+        </div>
+        <div>
+          <label class="label">Valor (R$)</label>
+          <input id="earningsAmount" type="number" min="0" step="0.01" class="input" placeholder="150.00" />
+        </div>
+        <div>
+          <label class="label">Observações (opcional)</label>
+          <textarea id="earningsNotes" rows="2" class="input" placeholder="Ex.: dia fraco, chuva"></textarea>
+        </div>
+      </div>
 
-      <label class="label">Plataforma</label>
-      <select id="earningsPlatform" class="input mb-2">
-        <option value="Uber">Uber</option>
-        <option value="99">99</option>
-        <option value="InDriver">InDriver</option>
-        <option value="Outros">Outros</option>
-      </select>
-
-      <label class="label">Valor do Dia (R$)</label>
-      <input id="earningsAmount" type="number" min="0" step="0.01" class="input mb-2" />
-
-      <label class="label">Observações (opcional)</label>
-      <textarea id="earningsNotes" rows="2" class="input mb-4" placeholder="Ex.: dia fraco, muita chuva, promoção ativa, etc."></textarea>
-
-      <div class="flex justify-end gap-2">
-        <button id="cancelEarningsBtn" class="btn-secondary">Cancelar</button>
-        <button id="saveEarningsBtn" class="btn-primary">Salvar</button>
+      <div class="flex gap-2">
+        <button id="cancelEarningsBtn" class="flex-1 btn-secondary">Cancelar</button>
+        <button id="saveEarningsBtn" class="flex-1 btn-primary">Salvar</button>
       </div>
     </div>
   </div>
 
   <!-- MODAL DESPESA TRABALHO -->
-  <div id="workExpenseModal" class="fixed inset-0 bg-black/60 flex items-center justify-center z-40 hidden">
-    <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5 w-full max-w-md mx-4">
-      <h3 class="text-sm sm:text-base font-semibold text-emerald-300 mb-1">
-        🚗 Adicionar Despesa de Trabalho
+  <div id="workExpenseModal" class="fixed inset-0 bg-black/40 flex items-center justify-center z-50 hidden">
+    <div class="bg-white rounded-2xl p-6 w-full max-w-md mx-4 shadow-2xl">
+      <h3 class="text-lg font-bold text-slate-900 mb-4">
+        Adicionar Despesa de Trabalho
       </h3>
-      <p class="text-[11px] text-slate-500 mb-3">
-        Custos diretamente ligados ao carro e ao trabalho nas plataformas.
-      </p>
 
-      <label class="label">Data</label>
-      <input id="workExpenseDate" type="date" class="input mb-2" />
+      <div class="space-y-3 mb-5">
+        <div>
+          <label class="label">Data</label>
+          <input id="workExpenseDate" type="date" class="input" />
+        </div>
+        <div>
+          <label class="label">Categoria</label>
+          <select id="workExpenseCategory" class="input">
+            <option value="Combustível">Combustível</option>
+            <option value="Manutenção">Manutenção</option>
+            <option value="Lavagem">Lavagem</option>
+            <option value="Pedágio">Pedágio</option>
+            <option value="Estacionamento">Estacionamento</option>
+            <option value="Outros">Outros</option>
+          </select>
+        </div>
+        <div>
+          <label class="label">Valor (R$)</label>
+          <input id="workExpenseAmount" type="number" min="0" step="0.01" class="input" placeholder="50.00" />
+        </div>
+        <div>
+          <label class="label">Descrição (opcional)</label>
+          <textarea id="workExpenseDescription" rows="2" class="input" placeholder="Ex.: troca de óleo"></textarea>
+        </div>
+      </div>
 
-      <label class="label">Categoria</label>
-      <select id="workExpenseCategory" class="input mb-2">
-        <option value="Combustível">Combustível</option>
-        <option value="Manutenção">Manutenção</option>
-        <option value="Lavagem">Lavagem</option>
-        <option value="Pedágio">Pedágio</option>
-        <option value="Estacionamento">Estacionamento</option>
-        <option value="Outros">Outros</option>
-      </select>
-
-      <label class="label">Valor (R$)</label>
-      <input id="workExpenseAmount" type="number" min="0" step="0.01" class="input mb-2" />
-
-      <label class="label">Descrição (opcional)</label>
-      <textarea id="workExpenseDescription" rows="2" class="input mb-4" placeholder="Ex.: troca de óleo, lavagem completa, etc."></textarea>
-
-      <div class="flex justify-end gap-2">
-        <button id="cancelWorkExpenseBtn" class="btn-secondary">Cancelar</button>
-        <button id="saveWorkExpenseBtn" class="btn-primary">Salvar</button>
+      <div class="flex gap-2">
+        <button id="cancelWorkExpenseBtn" class="flex-1 btn-secondary">Cancelar</button>
+        <button id="saveWorkExpenseBtn" class="flex-1 btn-primary">Salvar</button>
       </div>
     </div>
   </div>
 
   <!-- MODAL DESPESA CASA -->
-  <div id="houseExpenseModal" class="fixed inset-0 bg-black/60 flex items-center justify-center z-40 hidden">
-    <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5 w-full max-w-md mx-4">
-      <h3 class="text-sm sm:text-base font-semibold text-emerald-300 mb-1">
-        🏠 Adicionar Despesa de Casa
+  <div id="houseExpenseModal" class="fixed inset-0 bg-black/40 flex items-center justify-center z-50 hidden">
+    <div class="bg-white rounded-2xl p-6 w-full max-w-md mx-4 shadow-2xl">
+      <h3 class="text-lg font-bold text-slate-900 mb-4">
+        Adicionar Despesa de Casa
       </h3>
-      <p class="text-[11px] text-slate-500 mb-3">
-        Contas e despesas que impactam o seu orçamento familiar.
-      </p>
 
-      <label class="label">Data</label>
-      <input id="houseExpenseDate" type="date" class="input mb-2" />
+      <div class="space-y-3 mb-5">
+        <div>
+          <label class="label">Data</label>
+          <input id="houseExpenseDate" type="date" class="input" />
+        </div>
+        <div>
+          <label class="label">Categoria</label>
+          <select id="houseExpenseCategory" class="input">
+            <option value="Aluguel">Aluguel</option>
+            <option value="Água">Água</option>
+            <option value="Luz">Luz</option>
+            <option value="Internet">Internet</option>
+            <option value="Mercado">Mercado</option>
+            <option value="Outros">Outros</option>
+          </select>
+        </div>
+        <div>
+          <label class="label">Valor (R$)</label>
+          <input id="houseExpenseAmount" type="number" min="0" step="0.01" class="input" placeholder="800.00" />
+        </div>
+        <div>
+          <label class="label">Descrição (opcional)</label>
+          <textarea id="houseExpenseDescription" rows="2" class="input" placeholder="Ex.: aluguel de janeiro"></textarea>
+        </div>
+      </div>
 
-      <label class="label">Categoria</label>
-      <select id="houseExpenseCategory" class="input mb-2">
-        <option value="Aluguel">Aluguel</option>
-        <option value="Água">Água</option>
-        <option value="Luz">Luz</option>
-        <option value="Internet">Internet</option>
-        <option value="Mercado">Mercado</option>
-        <option value="Outros">Outros</option>
-      </select>
-
-      <label class="label">Valor (R$)</label>
-      <input id="houseExpenseAmount" type="number" min="0" step="0.01" class="input mb-2" />
-
-      <label class="label">Descrição (opcional)</label>
-      <textarea id="houseExpenseDescription" rows="2" class="input mb-4" placeholder="Ex.: mercado do mês, conta extra, etc."></textarea>
-
-      <div class="flex justify-end gap-2">
-        <button id="cancelHouseExpenseBtn" class="btn-secondary">Cancelar</button>
-        <button id="saveHouseExpenseBtn" class="btn-primary">Salvar</button>
+      <div class="flex gap-2">
+        <button id="cancelHouseExpenseBtn" class="flex-1 btn-secondary">Cancelar</button>
+        <button id="saveHouseExpenseBtn" class="flex-1 btn-primary">Salvar</button>
       </div>
     </div>
   </div>
 
-  <!-- FIREBASE + LÓGICA (igual à sua, com helpers de segurança) -->
+  <!-- FIREBASE + LÓGICA -->
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-app.js";
     import {
@@ -562,7 +471,8 @@
       onAuthStateChanged,
       signInWithEmailAndPassword,
       createUserWithEmailAndPassword,
-      signOut
+      signOut,
+      sendPasswordResetEmail
     } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-auth.js";
     import {
       getFirestore,
@@ -572,13 +482,13 @@
       doc,
       getDoc,
       getDocs,
+      deleteDoc,
       query,
       where,
       orderBy,
       serverTimestamp
     } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore.js";
 
-    // CONFIG FIREBASE
     const firebaseConfig = {
       apiKey: "AIzaSyDWMlDtQ1dhvE3mLYhRakJ1oM8TJyJd6s8",
       authDomain: "gestao-motorista-4155f.firebaseapp.com",
@@ -602,23 +512,19 @@
       return "R$ " + n.toFixed(2).replace(".", ",");
     };
 
-    const formatPercent = (value) => {
-      const n = safeNumber(value);
-      return n.toFixed(1).replace(".", ",") + "%";
-    };
-
     const todayISO = () => new Date().toISOString().split("T")[0];
 
     const authSection = document.getElementById("authSection");
     const appSection = document.getElementById("appSection");
     const logoutBtn = document.getElementById("logoutBtn");
     const logoutBtnMobile = document.getElementById("logoutBtnMobile");
-    const userEmailLabel = document.getElementById("userEmailLabel");
+    const logoImg = document.getElementById("logoImg");
 
     const emailInput = document.getElementById("emailInput");
     const passwordInput = document.getElementById("passwordInput");
     const loginBtn = document.getElementById("loginBtn");
     const registerBtn = document.getElementById("registerBtn");
+    const forgotPasswordBtn = document.getElementById("forgotPasswordBtn");
 
     const tabButtons = document.querySelectorAll(".tab-btn");
     const tabPanels = {
@@ -629,14 +535,13 @@
       home: document.getElementById("tab-home")
     };
 
+    const periodSelect = document.getElementById("periodSelect");
+
     const totalEarningsDisplay = document.getElementById("totalEarningsDisplay");
     const totalWorkExpensesDisplay = document.getElementById("totalWorkExpensesDisplay");
     const totalHouseExpensesDisplay = document.getElementById("totalHouseExpensesDisplay");
     const profitDisplay = document.getElementById("profitDisplay");
     const finalBalanceDisplay = document.getElementById("finalBalanceDisplay");
-    const avgTicketDisplay = document.getElementById("avgTicketDisplay");
-    const costPerDayDisplay = document.getElementById("costPerDayDisplay");
-    const marginDisplay = document.getElementById("marginDisplay");
     const currentDailyGoalDisplay = document.getElementById("currentDailyGoalDisplay");
 
     const monthlyGoalMonth = document.getElementById("monthlyGoalMonth");
@@ -649,8 +554,6 @@
     const earningsList = document.getElementById("earningsList");
     const workExpensesList = document.getElementById("workExpensesList");
     const houseExpensesList = document.getElementById("houseExpensesList");
-
-    const periodButtons = document.querySelectorAll(".period-btn");
 
     const earningsModal = document.getElementById("earningsModal");
     const earningsDate = document.getElementById("earningsDate");
@@ -681,7 +584,12 @@
 
     const saveMonthlyGoalBtn = document.getElementById("saveMonthlyGoalBtn");
     const saveWeeklyGoalBtn = document.getElementById("saveWeeklyGoalBtn");
-    const clearGoalsBtn = document.getElementById("clearGoalsBtn");
+
+    // Carregar logo
+    const logoUrl = "https://raw.githubusercontent.com/eduardoeff/gestao-financeira-motorista/main/logo-gordinho-comfort.png";
+    logoImg.src = logoUrl;
+    logoImg.onload = () => logoImg.classList.remove("hidden");
+    logoImg.onerror = () => console.warn("Logo não encontrada");
 
     // Auth
     loginBtn.addEventListener("click", async () => {
@@ -715,6 +623,21 @@
       }
     });
 
+    forgotPasswordBtn.addEventListener("click", async () => {
+      const email = emailInput.value.trim();
+      if (!email) {
+        alert("Digite seu e-mail no campo acima.");
+        return;
+      }
+      try {
+        await sendPasswordResetEmail(auth, email);
+        alert("E-mail de recuperação enviado! Verifique sua caixa de entrada.");
+      } catch (error) {
+        console.error("Erro ao enviar e-mail:", error);
+        alert("Erro ao enviar e-mail de recuperação: " + (error.message || ""));
+      }
+    });
+
     const doLogout = async () => {
       try {
         await signOut(auth);
@@ -730,7 +653,6 @@
       if (user) {
         authSection.classList.add("hidden");
         appSection.classList.remove("hidden");
-        userEmailLabel.textContent = user.email || "motorista";
         initForUser(user);
       } else {
         authSection.classList.remove("hidden");
@@ -742,10 +664,8 @@
     tabButtons.forEach((btn) => {
       btn.addEventListener("click", () => {
         const tab = btn.getAttribute("data-tab");
-        tabButtons.forEach((b) =>
-          b.classList.remove("border-emerald-400", "bg-emerald-500/20", "text-emerald-300")
-        );
-        btn.classList.add("border-emerald-400", "bg-emerald-500/20", "text-emerald-300");
+        tabButtons.forEach((b) => b.classList.remove("tab-active"));
+        btn.classList.add("tab-active");
 
         Object.entries(tabPanels).forEach(([key, panel]) => {
           panel.classList.toggle("hidden", key !== tab);
@@ -939,17 +859,6 @@
       }
     });
 
-    clearGoalsBtn?.addEventListener("click", async () => {
-      const user = auth.currentUser;
-      if (!user) return;
-      try {
-        await setDoc(goalsDocRef(user.uid), { monthlyGoals: {}, weeklyGoals: {} });
-        await loadGoals(user);
-      } catch (error) {
-        console.error("Erro ao limpar metas:", error);
-      }
-    });
-
     // Dashboard
     let earningsChart;
 
@@ -962,25 +871,28 @@
           labels,
           datasets: [
             {
-              label: "Ganhos",
+              label: "Ganhos (R$)",
               data: values,
-              borderColor: "#22c55e",
-              backgroundColor: "rgba(34,197,94,0.1)",
+              borderColor: "#059669",
+              backgroundColor: "rgba(5,150,105,0.1)",
               tension: 0.3,
               fill: true,
-              pointRadius: 3
+              pointRadius: 4,
+              pointBackgroundColor: "#059669"
             }
           ]
         },
         options: {
+          responsive: true,
+          maintainAspectRatio: true,
           scales: {
             x: {
-              ticks: { color: "#94a3b8", font: { size: 10 } }
+              ticks: { color: "#64748b", font: { size: 11 } }
             },
             y: {
               ticks: {
-                color: "#94a3b8",
-                font: { size: 10 },
+                color: "#64748b",
+                font: { size: 11 },
                 callback: (v) => "R$ " + v
               }
             }
@@ -1019,13 +931,9 @@
       };
     }
 
-    periodButtons.forEach((btn) => {
-      btn.addEventListener("click", async () => {
-        periodButtons.forEach((b) => b.classList.remove("period-active"));
-        btn.classList.add("period-active");
-        const user = auth.currentUser;
-        if (user) await loadDashboard(user, btn.dataset.period);
-      });
+    periodSelect.addEventListener("change", async () => {
+      const user = auth.currentUser;
+      if (user) await loadDashboard(user, periodSelect.value);
     });
 
     async function loadDashboard(user, period = "last7") {
@@ -1080,20 +988,12 @@
 
         const profit = earningsTotal - workTotal;
         const finalBalance = profit - houseTotal;
-        const avgTicket = earningsCount > 0 ? earningsTotal / earningsCount : 0;
-        const daysDiff =
-          (new Date(end).getTime() - new Date(start).getTime()) / (1000 * 60 * 60 * 24) + 1;
-        const costPerDay = daysDiff > 0 ? workTotal / daysDiff : 0;
-        const margin = earningsTotal > 0 ? (profit / earningsTotal) * 100 : 0;
 
         totalEarningsDisplay.textContent = formatCurrency(earningsTotal);
         totalWorkExpensesDisplay.textContent = formatCurrency(workTotal);
         totalHouseExpensesDisplay.textContent = formatCurrency(houseTotal);
         profitDisplay.textContent = formatCurrency(profit);
         finalBalanceDisplay.textContent = formatCurrency(finalBalance);
-        avgTicketDisplay.textContent = formatCurrency(avgTicket);
-        costPerDayDisplay.textContent = formatCurrency(costPerDay);
-        marginDisplay.textContent = formatPercent(margin);
 
         const now = new Date();
         const year = now.getFullYear();
@@ -1113,9 +1013,6 @@
         await loadGoals(user, { onlyUpdateDailyGoal: true });
       } catch (error) {
         console.error("Erro ao carregar dashboard:", error);
-        if (error.code === "failed-precondition") {
-          console.warn("Crie o índice sugerido pelo Firestore (dailyEarnings / expenses).");
-        }
       }
     }
 
@@ -1130,23 +1027,24 @@
         const snap = await getDocs(qE);
         if (snap.empty) {
           earningsList.innerHTML =
-            '<li class="text-slate-500 text-xs">Nenhum ganho cadastrado ainda.</li>';
+            '<li class="text-slate-500 text-sm p-4 bg-white border border-slate-200 rounded-lg">Nenhum ganho cadastrado.</li>';
           return;
         }
         snap.forEach((docSnap) => {
           const d = docSnap.data();
           const li = document.createElement("li");
           li.className =
-            "flex justify-between items-center bg-slate-900/60 border border-slate-800 rounded-xl px-3 py-2";
+            "flex justify-between items-center bg-white border border-slate-200 rounded-lg px-4 py-3 shadow-sm";
           li.innerHTML = `
             <div>
-              <p class="font-medium text-xs sm:text-sm">${formatCurrency(d.amount)} • ${
+              <p class="font-semibold text-sm text-slate-900">${formatCurrency(d.amount)} • ${
             d.platform || "Plataforma"
           }</p>
-              <p class="text-[10px] text-slate-400">${d.date} ${
+              <p class="text-xs text-slate-500">${d.date} ${
             d.notes ? "• " + d.notes : ""
           }</p>
             </div>
+            <button class="btn-danger" data-id="${docSnap.id}" data-type="earnings">Excluir</button>
           `;
           earningsList.appendChild(li);
         });
@@ -1168,22 +1066,23 @@
         const wSnap = await getDocs(qWork);
         if (wSnap.empty) {
           workExpensesList.innerHTML =
-            '<li class="text-slate-500 text-xs">Nenhuma despesa de trabalho cadastrada.</li>';
+            '<li class="text-slate-500 text-sm p-4 bg-white border border-slate-200 rounded-lg">Nenhuma despesa de trabalho.</li>';
         } else {
           wSnap.forEach((docSnap) => {
             const d = docSnap.data();
             const li = document.createElement("li");
             li.className =
-              "flex justify-between items-center bg-slate-900/60 border border-slate-800 rounded-xl px-3 py-2";
+              "flex justify-between items-center bg-white border border-slate-200 rounded-lg px-4 py-3 shadow-sm";
             li.innerHTML = `
               <div>
-                <p class="font-medium text-xs sm:text-sm">${formatCurrency(
+                <p class="font-semibold text-sm text-slate-900">${formatCurrency(
                   d.amount
                 )} • ${d.category}</p>
-                <p class="text-[10px] text-slate-400">${d.date} ${
+                <p class="text-xs text-slate-500">${d.date} ${
               d.description ? "• " + d.description : ""
             }</p>
               </div>
+              <button class="btn-danger" data-id="${docSnap.id}" data-type="work">Excluir</button>
             `;
             workExpensesList.appendChild(li);
           });
@@ -1201,22 +1100,23 @@
         const hSnap = await getDocs(qHouse);
         if (hSnap.empty) {
           houseExpensesList.innerHTML =
-            '<li class="text-slate-500 text-xs">Nenhuma despesa de casa cadastrada.</li>';
+            '<li class="text-slate-500 text-sm p-4 bg-white border border-slate-200 rounded-lg">Nenhuma despesa de casa.</li>';
         } else {
           hSnap.forEach((docSnap) => {
             const d = docSnap.data();
             const li = document.createElement("li");
             li.className =
-              "flex justify-between items-center bg-slate-900/60 border border-slate-800 rounded-xl px-3 py-2";
+              "flex justify-between items-center bg-white border border-slate-200 rounded-lg px-4 py-3 shadow-sm";
             li.innerHTML = `
               <div>
-                <p class="font-medium text-xs sm:text-sm">${formatCurrency(
+                <p class="font-semibold text-sm text-slate-900">${formatCurrency(
                   d.amount
                 )} • ${d.category}</p>
-                <p class="text-[10px] text-slate-400">${d.date} ${
+                <p class="text-xs text-slate-500">${d.date} ${
               d.description ? "• " + d.description : ""
             }</p>
               </div>
+              <button class="btn-danger" data-id="${docSnap.id}" data-type="house">Excluir</button>
             `;
             houseExpensesList.appendChild(li);
           });
@@ -1225,6 +1125,32 @@
         console.error("Erro ao carregar despesas de casa:", error);
       }
     }
+
+    // Excluir item
+    document.addEventListener("click", async (e) => {
+      if (e.target.classList.contains("btn-danger")) {
+        const id = e.target.getAttribute("data-id");
+        const type = e.target.getAttribute("data-type");
+        if (!id || !type) return;
+
+        if (!confirm("Tem certeza que deseja excluir este item?")) return;
+
+        try {
+          if (type === "earnings") {
+            await deleteDoc(doc(db, "dailyEarnings", id));
+          } else if (type === "work") {
+            await deleteDoc(doc(db, "expenses", id));
+          } else if (type === "house") {
+            await deleteDoc(doc(db, "houseExpenses", id));
+          }
+          const user = auth.currentUser;
+          if (user) await loadAllData(user);
+        } catch (error) {
+          console.error("Erro ao excluir:", error);
+          alert("Erro ao excluir item.");
+        }
+      }
+    });
 
     async function loadGoals(user, options = {}) {
       const ref = goalsDocRef(user.uid);
@@ -1283,7 +1209,7 @@
 
     async function loadAllData(user) {
       await Promise.all([
-        loadDashboard(user),
+        loadDashboard(user, periodSelect.value),
         loadEarningsList(user),
         loadExpensesLists(user),
         loadGoals(user)
@@ -1291,10 +1217,7 @@
     }
 
     function initForUser(user) {
-      periodButtons.forEach((b) => {
-        b.classList.remove("period-active");
-        if (b.dataset.period === "last7") b.classList.add("period-active");
-      });
+      periodSelect.value = "last7";
       loadAllData(user);
     }
   </script>
