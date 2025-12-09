@@ -20,7 +20,6 @@
   <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
 
   <script type="text/babel">
-    
     const { useState, useEffect, useRef } = React;
 
     const firebaseConfig = {
@@ -195,8 +194,8 @@
           return;
         }
 
-        const finalPlatform = earningForm.platform === 'Outra' 
-          ? earningForm.customPlatform.trim() 
+        const finalPlatform = earningForm.platform === 'Outra'
+          ? earningForm.customPlatform.trim()
           : earningForm.platform;
 
         if (!finalPlatform) {
@@ -206,7 +205,7 @@
 
         try {
           if (earningForm.platform === 'Outra' && earningForm.customPlatform.trim()) {
-            const platformExists = customPlatforms.some(p => 
+            const platformExists = customPlatforms.some(p =>
               p.name.toLowerCase() === earningForm.customPlatform.trim().toLowerCase()
             );
 
@@ -338,20 +337,19 @@
       const custoPorDia = totalDays > 0 ? totalExpenses / totalDays : 0;
       const margemLucro = totalEarnings > 0 ? (workProfit / totalEarnings) * 100 : 0;
 
-      // Dados do mês atual
       const getCurrentMonthData = () => {
         const now = new Date();
-        
+
         const currEarnings = dailyEarnings.filter(item => {
           const d = new Date(item.date);
           return d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear();
         });
-        
+
         const currExpenses = expenses.filter(item => {
           const d = new Date(item.date);
           return d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear();
         });
-        
+
         return {
           earnings: safeSum(currEarnings),
           expenses: safeSum(currExpenses),
@@ -359,21 +357,20 @@
         };
       };
 
-      // Dados do mês anterior
       const getPreviousMonthData = () => {
         const now = new Date();
         const prevMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1);
-        
+
         const prevEarnings = dailyEarnings.filter(item => {
           const d = new Date(item.date);
           return d.getMonth() === prevMonth.getMonth() && d.getFullYear() === prevMonth.getFullYear();
         });
-        
+
         const prevExpenses = expenses.filter(item => {
           const d = new Date(item.date);
           return d.getMonth() === prevMonth.getMonth() && d.getFullYear() === prevMonth.getFullYear();
         });
-        
+
         return {
           earnings: safeSum(prevEarnings),
           expenses: safeSum(prevExpenses),
@@ -383,15 +380,14 @@
 
       const currentMonthData = getCurrentMonthData();
       const prevMonthData = getPreviousMonthData();
-      
-      const earningsChange = prevMonthData.earnings > 0 
+
+      const earningsChange = prevMonthData.earnings > 0
         ? ((currentMonthData.earnings - prevMonthData.earnings) / prevMonthData.earnings * 100).toFixed(1)
         : 0;
       const profitChange = prevMonthData.profit > 0
         ? ((currentMonthData.profit - prevMonthData.profit) / prevMonthData.profit * 100).toFixed(1)
         : 0;
 
-      // Gráfico de evolução (mês inteiro ou últimos 7 dias)
       useEffect(() => {
         if (activeTab !== 'dashboard' || !chartRef.current) return;
 
@@ -405,7 +401,6 @@
         let datesArray = [];
 
         if (filterPeriod === 'month' || filterPeriod === 'lastMonth') {
-          // Mês atual ou mês passado – lista todos os dias do mês
           const baseMonth =
             filterPeriod === 'month'
               ? new Date(now.getFullYear(), now.getMonth(), 1)
@@ -420,7 +415,6 @@
             datesArray.push(d.toISOString().split('T')[0]);
           }
         } else {
-          // Para semana/ano mantemos últimos 7 dias
           for (let i = 6; i >= 0; i--) {
             const d = new Date();
             d.setDate(d.getDate() - i);
@@ -483,11 +477,10 @@
         };
       }, [activeTab, filterPeriod, dailyEarnings, expenses]);
 
-      // Gráfico de indicadores
       useEffect(() => {
         if (activeTab === 'dashboard' && barChartRef.current) {
           const ctx = barChartRef.current.getContext('2d');
-          
+
           if (barChartInstance.current) {
             barChartInstance.current.destroy();
           }
@@ -533,10 +526,10 @@
       const exportPDF = () => {
         const { jsPDF } = window.jspdf;
         const doc = new jsPDF();
-        
+
         doc.setFontSize(18);
         doc.text('Relatório Financeiro', 20, 20);
-        
+
         doc.setFontSize(12);
         doc.text(
           `Período: ${
@@ -551,17 +544,17 @@
           20,
           35
         );
-        
+
         doc.text(`Receita Total: R$ ${totalEarnings.toFixed(2)}`, 20, 50);
         doc.text(`Despesas Trabalho: R$ ${totalExpenses.toFixed(2)}`, 20, 60);
         doc.text(`Lucro Trabalho: R$ ${workProfit.toFixed(2)}`, 20, 70);
         doc.text(`Despesas Casa: R$ ${totalHouseExpenses.toFixed(2)}`, 20, 80);
         doc.text(`Saldo Final: R$ ${finalBalance.toFixed(2)}`, 20, 90);
-        
+
         doc.text(`Ticket Médio: R$ ${ticketMedio.toFixed(2)}`, 20, 105);
         doc.text(`Custo por Dia: R$ ${custoPorDia.toFixed(2)}`, 20, 115);
         doc.text(`Margem de Lucro: ${margemLucro.toFixed(1)}%`, 20, 125);
-        
+
         doc.save('relatorio-financeiro.pdf');
       };
 
@@ -732,7 +725,6 @@
                   </button>
                 </div>
 
-                {/* Card de Comparação Mês Atual vs Mês Passado */}
                 <div className="bg-white rounded-xl p-4 shadow-lg mb-4">
                   <h3 className="font-bold text-slate-700 mb-3">📅 Comparação Mensal</h3>
                   <div className="grid grid-cols-2 gap-4">
@@ -907,7 +899,7 @@
 
                 {filteredExpenses.length === 0 && (
                   <p className="text-center text-slate-400 text-sm mt-6">
-                    Nenhuma despesa registrada
+                    Nenhuma despesa registrado
                   </p>
                 )}
 
