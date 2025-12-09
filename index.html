@@ -28,7 +28,7 @@
 
   <!-- Código da aplicação -->
   <script type="text/babel">
-    const { useState, useEffect } = React;
+    const { useState, useEffect, useRef } = React;
 
     // Configuração Firebase
     const firebaseConfig = {
@@ -64,6 +64,9 @@
       const [showRideModal, setShowRideModal] = useState(false);
       const [showExpenseModal, setShowExpenseModal] = useState(false);
       const [showHouseModal, setShowHouseModal] = useState(false);
+
+      const chartRef = useRef(null);
+      const chartInstance = useRef(null);
 
       const today = new Date().toISOString().split('T')[0];
 
@@ -239,6 +242,119 @@
       const ticketMedio = totalCorridas > 0 ? totalRides / totalCorridas : 0;
       const custoPorCorrida = totalCorridas > 0 ? totalExpenses / totalCorridas : 0;
       const margemLucro = totalRides > 0 ? (workProfit / totalRides) * 100 : 0;
+
+      // Preparar dados para o gráfico (últimos 7 dias)
+      const getLast7Days = () => {
+        const days = [];
+        for (let i = 6; i >= 0; i--) {
+          const d = new Date();
+          d.setDate(d.getDate() - i);
+          days.push(d.toISOString().split('T')[0]);
+        }
+        return days;
+      };
+
+      const last7Days = getLast7Days();
+
+      const chartData = last7Days.map(date => {
+        const dayRides = rides.filter(r => r.date === date);
+        const dayExpenses = expenses.filter(e => e.date === date);
+        const receita = safeSum(dayRides);
+        const despesa = safeSum(dayExpenses);
+        const lucro = receita - despesa;
+        return { date, receita, despesa, lucro };
+      });
+
+      // Projeções baseadas nos últimos 7 dias
+      const avgReceitaDiaria = chartData.reduce((sum, d) => sum + d.receita, 0) / 7;
+      const avgDespesaDiaria = chartData.reduce((sum, d) => sum + d.despesa, 0) / 7;
+      const avgLucroDiario = avgReceitaDiaria - avgDespesaDiaria;
+
+      const diasRestantesMes = () => {
+        const hoje = new Date();
+        const ultimoDia = new Date(hoje.getFullYear(), hoje.getMonth() + 1, 0);
+        return ultimoDia.getDate() - hoje.getDate();
+      };
+
+      const diasRestantes = diasRestantesMes();
+      const projecaoReceita = totalRides + (avgReceitaDiaria * diasRestantes);
+      const projecaoLucro = workProfit + (avgLucroDiario * diasRestantes);
+
+      // Renderizar gráfico
+      useEffect(() => {
+        if (activeTab === 'dashboard' && chartRef.current && chartData.length > 0) {
+          if (chartInstance.current) {
+            chartInstance.current.destroy();
+          }
+
+          const ctx = chartRef.current.getContext('2d');
+          chartInstance.current = new Chart(ctx, {
+            type: 'line',
+            data: {
+              labels: last7Days.map(d => {
+                const [y, m, day] = d.split('-');
+                return `${day}/${m}`;
+              }),
+              datasets: [
+                {
+                  label: 'Receita',
+                  data: chartData.map(d => d.receita),
+                  borderColor: '#10b981',
+                  backgroundColor: 'rgba(16, 185, 129, 0.1)',
+                  tension: 0.3,
+                  fill: true
+                },
+                {
+                  label: 'Despesas',
+                  data: chartData.map(d => d.despesa),
+                  borderColor: '#f59e0b',
+                  backgroundColor: 'rgba(245, 158, 11, 0.1)',
+                  tension: 0.3,
+                  fill: true
+                },
+                {
+                  label: 'Lucro',
+                  data: chartData.map(d => d.lucro),
+                  borderColor: '#0ea5e9',
+                  backgroundColor: 'rgba(14, 165, 233, 0.1)',
+                  tension: 0.3,
+                  fill: true
+                }
+              ]
+            },
+            options: {
+              responsive: true,
+              maintainAspectRatio: false,
+              plugins: {
+                legend: {
+                  display: true,
+                  position: 'bottom',
+                  labels: {
+                    boxWidth: 12,
+                    font: { size: 11 }
+                  }
+                }
+              },
+              scales: {
+                y: {
+                  beginAtZero: true,
+                  ticks: {
+                    callback: function(value) {
+                      return 'R$ ' + value.toFixed(0);
+                    }
+                  }
+                }
+              }
+            }
+          });
+        }
+
+        return () => {
+          if (chartInstance.current) {
+            chartInstance.current.destroy();
+          }
+        };
+      }, [activeTab, chartData]);
 
       if (loading) {
         return (
@@ -420,10 +536,42 @@
                   <div className="text-3xl font-bold mt-1">R$ {finalBalance.toFixed(2)}</div>
                 </div>
 
-                {/* Indicadores de eficiência */}
+                {/* Projeções do mês */}
+                <div className="bg-gradient-to-br from-purple-600 to-purple-700 text-white rounded-xl p-4 mb-4 shadow-lg">
+                  <h3 className="text-sm font-bold mb-3 flex items-center">
+                    <span className="mr-2">🔮</span>
+                    Projeção do Mês (baseado em 7 dias)
+                  </h3>
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <div className="text-xs opacity-80">Receita Projetada</div>
+                      <div className="text-xl font-bold">R$ {projecaoReceita.toFixed(2)}</div>
+                    </div>
+                    <div>
+                      <div className="text-xs opacity-80">Lucro Projetado</div>
+                      <div className="text-xl font-bold">R$ {projecaoLucro.toFixed(2)}</div>
+                    </div>
+                  </div>
+                  <div className="text-xs opacity-75 mt-2">
+                    Faltam {diasRestantes} dias para o fim do mês
+                  </div>
+                </div>
+
+                {/* Gráfico de evolução */}
                 <div className="bg-white rounded-xl shadow-lg p-4 mb-4">
                   <h3 className="text-sm font-bold text-slate-700 mb-3 flex items-center">
                     <span className="mr-2">📈</span>
+                    Evolução (últimos 7 dias)
+                  </h3>
+                  <div style={{ height: '220px' }}>
+                    <canvas ref={chartRef}></canvas>
+                  </div>
+                </div>
+
+                {/* Indicadores de eficiência */}
+                <div className="bg-white rounded-xl shadow-lg p-4 mb-4">
+                  <h3 className="text-sm font-bold text-slate-700 mb-3 flex items-center">
+                    <span className="mr-2">📊</span>
                     Indicadores de Eficiência
                   </h3>
                   <div className="grid grid-cols-3 gap-3">
@@ -799,7 +947,7 @@
                 </div>
                 <div className="flex gap-2 mt-5">
                   <button
-                    onClick={() => setShowHouseModal(false)}
+                    onClick={() => setHouseForm(false)}
                     className="flex-1 bg-slate-200 hover:bg-slate-300 text-slate-700 py-2.5 rounded-lg font-medium transition"
                   >
                     Cancelar
