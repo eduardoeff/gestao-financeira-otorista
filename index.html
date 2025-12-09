@@ -190,7 +190,10 @@
       };
 
       const addEarning = async () => {
-        if (!earningForm.value || !user) return;
+        if (!earningForm.value || !user) {
+          alert('Por favor, preencha o valor');
+          return;
+        }
 
         const finalPlatform = earningForm.platform === 'Outra' 
           ? earningForm.customPlatform.trim() 
@@ -201,54 +204,69 @@
           return;
         }
 
-        if (earningForm.platform === 'Outra' && earningForm.customPlatform.trim()) {
-          const platformExists = customPlatforms.some(p => 
-            p.name.toLowerCase() === earningForm.customPlatform.trim().toLowerCase()
-          );
+        try {
+          if (earningForm.platform === 'Outra' && earningForm.customPlatform.trim()) {
+            const platformExists = customPlatforms.some(p => 
+              p.name.toLowerCase() === earningForm.customPlatform.trim().toLowerCase()
+            );
 
-          if (!platformExists) {
-            await db.collection('customPlatforms').add({
-              name: earningForm.customPlatform.trim(),
-              userId: user.uid,
-              createdAt: new Date().toISOString()
-            });
+            if (!platformExists) {
+              await db.collection('customPlatforms').add({
+                name: earningForm.customPlatform.trim(),
+                userId: user.uid,
+                createdAt: new Date().toISOString()
+              });
+            }
           }
+
+          await db.collection('dailyEarnings').add({
+            date: earningForm.date,
+            platform: finalPlatform,
+            value: parseFloat(earningForm.value) || 0,
+            userId: user.uid,
+            createdAt: new Date().toISOString()
+          });
+
+          setEarningForm({ date: today, platform: 'Uber', customPlatform: '', value: '' });
+          setShowEarningModal(false);
+        } catch (error) {
+          console.error('Erro ao salvar ganho:', error);
+          alert('Erro ao salvar. Verifique o console para mais detalhes.');
         }
-
-        await db.collection('dailyEarnings').add({
-          date: earningForm.date,
-          platform: finalPlatform,
-          value: parseFloat(earningForm.value) || 0,
-          userId: user.uid,
-          createdAt: new Date().toISOString()
-        });
-
-        setEarningForm({ date: today, platform: 'Uber', customPlatform: '', value: '' });
-        setShowEarningModal(false);
       };
 
       const addExpense = async () => {
         if (!expenseForm.value || !user) return;
-        await db.collection('expenses').add({
-          ...expenseForm,
-          value: parseFloat(expenseForm.value) || 0,
-          userId: user.uid,
-          createdAt: new Date().toISOString()
-        });
-        setExpenseForm({ date: today, category: 'Combustível', description: '', value: '' });
-        setShowExpenseModal(false);
+        try {
+          await db.collection('expenses').add({
+            ...expenseForm,
+            value: parseFloat(expenseForm.value) || 0,
+            userId: user.uid,
+            createdAt: new Date().toISOString()
+          });
+          setExpenseForm({ date: today, category: 'Combustível', description: '', value: '' });
+          setShowExpenseModal(false);
+        } catch (error) {
+          console.error('Erro ao salvar despesa:', error);
+          alert('Erro ao salvar despesa.');
+        }
       };
 
       const addHouseExpense = async () => {
         if (!houseForm.value || !user) return;
-        await db.collection('houseExpenses').add({
-          ...houseForm,
-          value: parseFloat(houseForm.value) || 0,
-          userId: user.uid,
-          createdAt: new Date().toISOString()
-        });
-        setHouseForm({ date: today, category: 'Alimentação', description: '', value: '' });
-        setShowHouseModal(false);
+        try {
+          await db.collection('houseExpenses').add({
+            ...houseForm,
+            value: parseFloat(houseForm.value) || 0,
+            userId: user.uid,
+            createdAt: new Date().toISOString()
+          });
+          setHouseForm({ date: today, category: 'Alimentação', description: '', value: '' });
+          setShowHouseModal(false);
+        } catch (error) {
+          console.error('Erro ao salvar despesa casa:', error);
+          alert('Erro ao salvar despesa.');
+        }
       };
 
       const deleteEarning = async (id) => {
@@ -491,7 +509,7 @@
           <div className="min-h-screen flex items-center justify-center p-4 bg-gradient-to-br from-slate-900 via-slate-800 to-sky-700">
             <div className="w-full max-w-md">
               <div className="flex flex-col items-center mb-6">
-                <div className="w-64 h-64 mb-4">
+                <div className="w-32 h-32 mb-4">
                   <img
                     src="https://i.ibb.co/Y4Jpys2S/download.png"
                     alt="Logo Gordinho do Comfort"
